@@ -5,6 +5,7 @@ Tools to work with SmartSolo node type instruments. Especially in Antarctic sett
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
 - **`smartsolo_node`** – read the other files in a node folder (script, `device.ini`, `PULSE_*.WAV`): test limits, geophone pulse-test analysis, boot-by-boot sensor QC, orientation, instrument response.
 - **`smartsolo_orientation`** – eCompass and tilt: circular statistics, rotation over time, boot vs settled heading, IGRF declination, writing azimuths to StationXML or rotating data.
+- **`smartsolo_dld`** – read raw SmartSolo `.DLD` data files directly (no SoloLite export), see [docs/DLD_FORMAT.md](docs/DLD_FORMAT.md).
 - **`smartsolo_waveforms`** – index MiniSEED / SEG-Y files, cut the selected time windows for the selected nodes with ObsPy, apply SEED codes from a mapping table, write MiniSEED + StationXML.
 
 See [Selecting stations and cutting waveforms](#selecting-stations-and-cutting-waveforms) below for the second part.
@@ -33,13 +34,20 @@ lib/smartsolo_locate.py               deployments, radius/polygon/time selection
 lib/smartsolo_waveforms.py            waveform index, extraction, StationXML
 lib/smartsolo_node.py                 node folder files, pulse test, geophone QC, response
 lib/smartsolo_orientation.py          eCompass / tilt tools
+lib/smartsolo_dld.py                  raw DLD reader
+docs/DLD_FORMAT.md                    reverse-engineered DLD format
 notebooks/smartsolo_log_demo.ipynb    log parsing and plotting
 notebooks/select_and_extract_demo.ipynb  selection + waveform extraction
 notebooks/node_qc_demo.ipynb          pulse test, sensor QC, polarity, orientation, response
+notebooks/dld_demo.ipynb              raw DLD files -> MiniSEED / SEG-Y / StationXML
 scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
-data/nodes/453021267/                 DigiSolo.LOG of node 453021267
-data/nodes/453022522/                 complete node folder (log, script, device.ini, PULSE_*.WAV ...)
+data/nodes/<serial>/                  one folder per node, as on the node's disk:
+  453021267, 453022522                  DML deployments, 2 weeks of logs (453022522: complete folder
+                                        with script, device.ini, PULSE_*.WAV ...)
+  453038428, 453038431                  logs + raw seis000{X,Y,Z}.DLD, side-by-side test, 250 sps
+  453022317, 453027665                  raw DLD only (no log), 1000 sps
+  4530261xx, 4530462xx                  short test logs (firmware V1.1.2 / V1.1.4, GNSS records)
 data/station_mapping.csv              example serial -> SEED code table
 data/example_area.geojson             example selection polygon
 data/seismic_traces/                  (generated, not in git) synthetic waveforms
@@ -303,6 +311,60 @@ python scripts/make_synthetic_waveforms.py      # -> data/seismic_traces/
 pytest -q tests
 ```
 
+## Raw DLD files
+
+The nodes store data as `seisNNN{X,Y,Z}.DLD` (`MiniSeed_Output_Mode = 0`).
+`lib/smartsolo_dld.py` reads them directly – no SoloLite export – and the
+rest of the toolbox treats them like any other waveform file. The format
+(reverse-engineered, see [docs/DLD_FORMAT.md](docs/DLD_FORMAT.md)): a
+512-byte header (serial, firmware, start/end, position), then blocks of 1000
+int24 samples, each followed by a 72-byte time tag (UTC second, ms tick, GPS
+position, GPS time of week).
+
+```python
+import smartsolo_dld as dld
+dld.read_dld_header("seis000Z.DLD")       # serial, firmware, start, end, lat/lon/alt ...
+dld.read_dld_tags("seis000Z.DLD")         # one row per 1000 samples
+st = dld.read_dld("seis000Z.DLD", starttime="2024-10-08T02:30", endtime="2024-10-08T02:31")
+```
+
+In the pipeline:
+
+```python
+index = wf.index_waveforms("/media/drive")                 # finds *.DLD (and MiniSEED/SEG-Y)
+deps  = loc.combine_deployments(loc.build_deployments("/media/drive"),        # from logs
+                                loc.build_deployments_from_dld("/media/drive"))  # nodes without logs
+sel   = loc.select_deployments(deps, polygon="area.gpkg", start=..., end=...)
+st    = wf.extract_waveforms(sel, index, mapping="station_mapping.csv",
+                             out_dir="out", out_format="MSEED")   # or "SEGY"
+inv   = wf.build_inventory(sel, stream=st, response="auspass")    # gain from log included
+# or everything on a drive in one go:
+wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_format="SEGY")
+```
+
+- **Sample rate**: from the tag spacing. The log/script `Sample Rate` is
+  the sample *interval* in 10 µs units: 100 → **1000 sps** (the DML nodes),
+  400 → 250 sps, 200 → 500 sps (`sample_rate_hz` column).
+- **Components**: X = north–south → `?PN`, Y = east–west → `?PE`, Z → `?PZ`.
+- **Polarity**: raw DLD counts have SmartSolo polarity; `extract_waveforms`
+  multiplies by −1 (AusPass).
+- **Gain**: raw counts include the preamp gain (0–36 dB). It is put into the
+  response (`gain_db="auto"` uses the log's `Channel 1 Gain`); nodes without a
+  log are assumed 0 dB.
+- **Position without logs**: from the GPS positions in the tags (first
+  stable fix). Log deployments are widened to cover the recorded data (the
+  log's first record is ~45 s after recording starts).
+- **Timing**: two nodes 10 m apart that started 4 s apart line up within one
+  sample. Whether a tag marks the start (default `tag_marks="block_start"`)
+  or the end of the preceding 1000-sample block is not yet confirmed –
+  check once with `dld.compare_with_export(dld_trace, sololite_trace)`.
+- SEG-Y output splits traces into ≤32767 samples (whole seconds); MiniSEED
+  uses Steim-2.
+
+Newer firmware (V1.1.4) writes `[GNSSnnnnn]` records and `GNSS ...` keys; the
+log reader maps them to the GPS names, and handles `UTC Time = ","`,
+`Altitude = Unknown` and 3-value `ADC Sync Value`.
+
 ## Node folder files, pulse test and sensor QC
 
 `lib/smartsolo_node.py` reads the small files every node writes next to
@@ -381,7 +443,7 @@ and [AusPass – SmartSolo Nodes](https://auspass.edu.au/xwiki/bin/view/Instrume
 - This matches the SmartSolo manual: positive X = case moving south,
   Y = west, Z = down.
 - Channel codes use instrument code **P** (geophone): `DPZ/DPN/DPE` at
-  250 sps, `EPZ/EPN/EPE` at 100 sps (SEED band code from the sample rate).
+  250 sps, `GPZ/GPN/GPE` at 1000 sps (SEED band code from the sample rate).
 - Other AusPass notes worth knowing: bury nodes flush (horizontal noise);
   take compass readings away from the node; a constant ~18 s time offset
   means SoloLite's leap-second file `smartsoloconfig.xml` is missing.
@@ -433,6 +495,7 @@ so.rotate_to_ne(st, north_azimuth=127.2)  # or rotate the data to geographic N/E
 - File/folder names contain the 9-digit serial (otherwise use `serial_from=`).
 - Waveform time stamps are UTC (GPS-disciplined), the same as the logs.
 - Log Ch1/Ch2/Ch3 ↔ X/Y/Z for the boot-test values: not documented.
+- DLD timing convention (`tag_marks`), see above.
 - That SoloLite was *not* already set to invert polarity at export (then the
   default flip would double it - use `invert_polarity=False`).
 - Meaning of `eCompass North` (magnetic azimuth of the N arrow?) and whether

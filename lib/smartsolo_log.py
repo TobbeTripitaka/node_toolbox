@@ -63,7 +63,8 @@ _SECTION_RE = re.compile(r"^\[([A-Za-z_]+?)(\d*)\]\s*$")
 _HEADER_RE = re.compile(r"^<([\d,\s]+)>\s*$")
 _DATETIME_RE = re.compile(r"^\d{4}/\d{2}/\d{2},\d{2}:\d{2}:\d{2}$")
 _NUMBER_RE = re.compile(r"^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$")
-_PAIR_RE = re.compile(r"^\s*([-+]?\d+\.?\d*)\s*,\s*([-+]?\d+\.?\d*)\s*$")
+_PAIR_RE = re.compile(r"^\s*[-+]?\d+\.?\d*(\s*,\s*[-+]?\d+\.?\d*){1,3}\s*$")   # 2-4 unquoted numbers
+_GNSS_RE = re.compile(r"GNSS")
 _DT_FORMAT = "%Y/%m/%d,%H:%M:%S"
 
 # Fields kept as text even if they look numeric (IDs, codes with leading zeros).
@@ -124,7 +125,8 @@ def parse_sections(path: PathLike):
             m = _SECTION_RE.match(line)
             if m:
                 current = {
-                    "record_type": m.group(1),
+                    # newer firmware (V1.1.4+) writes [GNSSnnnnn] / "GNSS ..." instead of GPS
+                    "record_type": _GNSS_RE.sub("GPS", m.group(1)),
                     "record_no": int(m.group(2)) if m.group(2) else np.nan,
                     "line_no": line_no,
                     "fields": OrderedDict(),
@@ -134,8 +136,14 @@ def parse_sections(path: PathLike):
 
             if "=" in line and current is not None:
                 key, value = line.split("=", 1)
-                key = key.strip()
-                value = value.strip().strip('"').strip()
+                key = _GNSS_RE.sub("GPS", key.strip())
+                value = value.strip()
+                quoted = value.startswith('"')
+                value = value.strip('"').strip()
+                if value.replace(",", "").strip() == "":   # e.g. UTC Time = "," (no time yet)
+                    value = ""
+                elif quoted and _PAIR_RE.match(value):
+                    value = '"' + value                     # keep quoted lists as text
                 k, n = key, 2
                 while k in current["fields"]:
                     k = f"{key}_{n}"
@@ -148,7 +156,7 @@ def parse_sections(path: PathLike):
 
 def _convert_value(value: str, key: str = ""):
     """Convert one raw string to datetime / float / (float, float) / str."""
-    if value == "":
+    if value == "" or value.lower() in ("unknown", "n/a", "none"):
         return np.nan
     if key in STRING_FIELDS:
         return value
@@ -156,9 +164,10 @@ def _convert_value(value: str, key: str = ""):
         return pd.Timestamp(pd.to_datetime(value, format=_DT_FORMAT), tz="UTC")
     if _NUMBER_RE.match(value):
         return float(value)
-    m = _PAIR_RE.match(value)
-    if m:
-        return (float(m.group(1)), float(m.group(2)))
+    if value.startswith('"'):
+        return value[1:]
+    if _PAIR_RE.match(value):
+        return tuple(float(v) for v in value.split(","))
     return value
 
 
@@ -172,7 +181,8 @@ def _section_to_row(sec: dict) -> dict:
         col = _snake(key)
         val = _convert_value(raw, key)
         if isinstance(val, tuple):
-            row[f"{col}_1"], row[f"{col}_2"] = val
+            for i, v in enumerate(val, start=1):
+                row[f"{col}_{i}"] = v
         else:
             row[col] = val
     return row
@@ -337,7 +347,8 @@ def read_logs(paths, sort: bool = True, **kwargs) -> pd.DataFrame:
 def read_device_info(paths) -> pd.DataFrame:
     """
     One row per ``[DeviceInfoNNNNN]`` block (written each time the node
-    boots): firmware, serial, sample rate, gains, geophone test results
+    boots): firmware, serial, sample rate (``sample_rate`` as logged = sample
+    interval in 10 µs units; ``sample_rate_hz`` = samples per second), gains, geophone test results
     (resistance, natural frequency, damping, sensitivity, noise per channel),
     SD-card info, boot temperature/tilt/voltage, GPS lock time, etc.
 
@@ -359,6 +370,10 @@ def read_device_info(paths) -> pd.DataFrame:
     df = _finalise_types(df)
     df = df.drop(columns=["record_type"]).rename(columns={"record_no": "boot_no"})
     df["boot_time"] = pd.to_datetime(df.get("boot_rtc"), utc=True)
+    if "sample_rate" in df:
+        # "Sample Rate" is the sample *interval* in units of 10 µs (100 = 1 ms,
+        # 400 = 4 ms), confirmed by the 1000-sample time tags in the DLD files.
+        df["sample_rate_hz"] = 1e5 / pd.to_numeric(df["sample_rate"], errors="coerce")
     front = [c for c in ["serial_number", "file", "boot_no", "boot_reason"] if c in df]
     df = df[front + [c for c in df.columns if c not in front]]
     return df.set_index("boot_time").sort_index(kind="stable")

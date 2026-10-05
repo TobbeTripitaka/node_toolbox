@@ -1,0 +1,381 @@
+"""
+smartsolo_dld
+=============
+
+Read SmartSolo raw ``.DLD`` data files (``seis000X.DLD``, ``seis000Y.DLD``,
+``seis000Z.DLD`` ...) directly into ObsPy, without exporting with SoloLite.
+
+The format is proprietary and undocumented; this reader is based on
+reverse-engineering files from IGU-16HR 3C nodes with firmware V1.0.8,
+V1.1.2 and V1.1.4 (250, 500 and 1000 samples/s). What is known:
+
+File layout
+-----------
+One file per component (X, Y, Z) and recording segment::
+
+    0x000  512-byte file header (see read_dld_header)
+    0x200  block 0: 1000 samples, 24-bit signed little-endian (3000 bytes)
+           72-byte time tag 0
+           block 1: 1000 samples
+           72-byte time tag 1
+           ...
+           block n-1, tag n-1  (= end of file)
+
+Time tag (72 bytes, repeated after every 1000 samples)::
+
+    +0   int32   flag (always 0 so far)
+    +4   int64   tick, ms; +1000 per tag at 1000 sps, +4000 at 250 sps
+    +12  char[11] "HHMMSS.00"  UTC time (whole seconds)
+    +23  char[9]  "YYYYMMDD"   UTC date
+    +32  float64 latitude  (deg)
+    +40  int32   small signed value, mostly 0/±1 (probably clock phase error)
+    +44  int32   0, then counts up by 100 per second near the end of a file
+    +48  float64 longitude (deg)
+    +56  char[16] GPS time of week, ms, as text (whole seconds)
+
+* The sample rate is 1000 samples / (tick difference between tags).
+* The header start/end times equal the first/last tag times.
+* Tag times are whole UTC seconds. The int64 tick is not a linear clock
+  across dates (its absolute value can't be mapped to UTC), so only its
+  differences are used.
+* **Timing convention (to verify!)**: by default a tag is taken as the time
+  of the *first sample of the block before it* (``tag_marks="block_start"``),
+  so the first sample of the file is at the header start time and the file
+  covers [start, end + one block). The alternative ``"block_end"`` shifts
+  every sample one block (1-4 s) earlier. Compare one file with a SoloLite
+  MiniSEED export of the same data (``compare_with_export``) to settle this.
+* Data are raw ADC counts **including the preamp gain** (0-36 dB, from the
+  log ``Channel N Gain``) and with the raw SmartSolo polarity (see
+  ``smartsolo_waveforms.extract_waveforms(invert_polarity=...)``).
+* Component letters: X = north-south, Y = east-west, Z = vertical (SmartSolo
+  manual). They are kept as the channel code here and mapped to N/E/Z in
+  ``smartsolo_waveforms``.
+
+Main functions
+--------------
+read_dld_header(path)        dict with serial, firmware, start/end, position ...
+read_dld_tags(path)          DataFrame, one row per time tag
+read_dld(path, ...)          obspy Stream (one trace per continuous segment)
+scan_dld(path)               index rows without reading samples (for index_waveforms)
+read_dld_node(files)         X, Y, Z of one recording into one Stream
+compare_with_export(dld_st, exported_st)   timing/amplitude check vs SoloLite export
+"""
+
+from __future__ import annotations
+
+import re
+import struct
+import warnings
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+__all__ = [
+    "DLD_MAGIC",
+    "read_dld_header",
+    "read_dld_tags",
+    "read_dld",
+    "scan_dld",
+    "read_dld_node",
+    "is_dld",
+    "compare_with_export",
+]
+
+DLD_MAGIC = b"DTCCSZ-TEC-FTS"
+HEADER_SIZE = 512
+TAG_SIZE = 72
+_TAG_RE = re.compile(rb"\d{6}\.\d\d\x00\x00\d{8}\x00")
+_NAME_RE = re.compile(r"seis(\d+)([A-Za-z])", re.I)
+
+
+# --------------------------------------------------------------------------- #
+# Header and tags
+# --------------------------------------------------------------------------- #
+def _cstr(b: bytes) -> str:
+    return b.split(b"\x00")[0].decode("ascii", errors="replace").strip()
+
+
+def _utc(date: str, time: str):
+    try:
+        return pd.Timestamp(f"{date[:4]}-{date[4:6]}-{date[6:8]}T{time[:2]}:{time[2:4]}:{time[4:6]}",
+                            tz="UTC") + pd.Timedelta(float("0" + time[6:]) if len(time) > 6 else 0, "s")
+    except (ValueError, IndexError):
+        return pd.NaT
+
+
+def is_dld(path) -> bool:
+    try:
+        with open(path, "rb") as fh:
+            return fh.read(len(DLD_MAGIC)) == DLD_MAGIC
+    except OSError:
+        return False
+
+
+def read_dld_header(path) -> dict:
+    """
+    Decode the 512-byte DLD file header.
+
+    Keys: ``magic, version, serial, hardware_id, project_name, bootloader,
+    firmware, start, end`` (UTC Timestamps from the text fields),
+    ``start_tick_ms, end_tick_ms, duration_s, latitude, longitude,
+    altitude, script_name, component, file_index`` and ``unknown_*`` for
+    fields whose meaning is not known yet.
+    """
+    path = Path(path)
+    with open(path, "rb") as fh:
+        h = fh.read(HEADER_SIZE)
+    if not h.startswith(DLD_MAGIC):
+        raise ValueError(f"{path} is not a SmartSolo DLD file")
+    t0, t1 = struct.unpack_from("<qq", h, 0xD0)
+    lon, lat = struct.unpack_from("<dd", h, 0x190)
+    m = _NAME_RE.search(path.stem)
+    out = {
+        "magic": _cstr(h[0x00:0x10]),
+        "version": struct.unpack_from("<i", h, 0x10)[0],
+        "serial": _cstr(h[0x20:0x30]),
+        "hardware_id": _cstr(h[0x30:0x40]),
+        "project_name": _cstr(h[0x40:0x60]),
+        "bootloader": _cstr(h[0x70:0x80]),
+        "firmware": _cstr(h[0x80:0x90]),
+        "start": _utc(_cstr(h[0xA0:0xB0]), _cstr(h[0x90:0xA0])),
+        "end": _utc(_cstr(h[0xC0:0xD0]), _cstr(h[0xB0:0xC0])),
+        "start_tick_ms": t0,
+        "end_tick_ms": t1,
+        "duration_s": (t1 - t0) / 1000.0,
+        "latitude": lat,
+        "longitude": lon,
+        "altitude": struct.unpack_from("<f", h, 0x11C)[0],
+        "script_name": _cstr(h[0x140:0x190]),
+        "component": m.group(2).upper() if m else "",
+        "file_index": int(m.group(1)) if m else None,
+        "unknown_0x060": struct.unpack_from("<2i", h, 0x60),
+        "unknown_0x100": struct.unpack_from("<7i", h, 0x100),
+        "unknown_0x120": struct.unpack_from("<4i", h, 0x120),
+        "file_size": path.stat().st_size,
+    }
+    return out
+
+
+def _layout(buf: bytes):
+    """Return (block_bytes, period, n_tags) by locating the tags."""
+    m = _TAG_RE.search(buf, HEADER_SIZE)
+    if m is None:
+        raise ValueError("no time tag found")
+    first = m.start() - 12
+    block = first - HEADER_SIZE
+    period = block + TAG_SIZE
+    n = (len(buf) - HEADER_SIZE) // period
+    # verify / trim to the tags that are really there
+    while n > 0 and not _TAG_RE.match(buf, HEADER_SIZE + n * period - TAG_SIZE + 12):
+        n -= 1
+    return block, period, n
+
+
+def _tags_from_buffer(buf, block, period, n) -> pd.DataFrame:
+    rows = []
+    for k in range(n):
+        p = HEADER_SIZE + k * period + block
+        flag, tick = struct.unpack_from("<iq", buf, p)
+        t = _cstr(buf[p + 12:p + 23])
+        d = _cstr(buf[p + 23:p + 32])
+        lat, = struct.unpack_from("<d", buf, p + 32)
+        i1, i2 = struct.unpack_from("<ii", buf, p + 40)
+        lon, = struct.unpack_from("<d", buf, p + 48)
+        tow = _cstr(buf[p + 56:p + 72])
+        rows.append((k, p, flag, tick, _utc(d, t), lat, lon, i1, i2,
+                     int(tow) if tow.isdigit() else np.nan))
+    return pd.DataFrame(rows, columns=["block", "offset", "flag", "tick_ms", "time", "latitude",
+                                       "longitude", "phase_error", "counter", "gps_tow_ms"])
+
+
+def read_dld_tags(path) -> pd.DataFrame:
+    """
+    All time tags of a DLD file: ``block, offset, flag, tick_ms, time`` (UTC),
+    ``latitude, longitude, phase_error`` (probably), ``counter`` and
+    ``gps_tow_ms``. One tag per 1000 samples.
+    """
+    buf = Path(path).read_bytes()
+    block, period, n = _layout(buf)
+    return _tags_from_buffer(buf, block, period, n)
+
+
+# --------------------------------------------------------------------------- #
+# Samples
+# --------------------------------------------------------------------------- #
+def _decode24(raw: np.ndarray) -> np.ndarray:
+    a = raw.reshape(-1, 3).astype(np.int32)
+    x = a[:, 0] | (a[:, 1] << 8) | (a[:, 2] << 16)
+    x[x >= 1 << 23] -= 1 << 24
+    return x
+
+
+def _segments(tags: pd.DataFrame, block_samples: int, sr: float, tag_marks: str):
+    """Split blocks into continuous runs; returns list of (first_block, last_block, t0)."""
+    dt = block_samples / sr
+    shift = pd.Timedelta(0) if tag_marks == "block_start" else -pd.Timedelta(seconds=dt)
+    segs, start = [], 0
+    ticks = tags["tick_ms"].to_numpy()
+    times = tags["time"]
+    for k in range(1, len(tags)):
+        gap_tick = abs((ticks[k] - ticks[k - 1]) - dt * 1000) > 1
+        gap_time = abs((times.iloc[k] - times.iloc[k - 1]).total_seconds() - dt) > 0.5
+        if gap_tick or gap_time:
+            segs.append((start, k - 1, times.iloc[start] + shift))
+            start = k
+    segs.append((start, len(tags) - 1, times.iloc[start] + shift))
+    return segs
+
+
+def _sampling_rate(tags: pd.DataFrame, block_samples: int) -> float:
+    d = np.diff(tags["tick_ms"].to_numpy())
+    if len(d) == 0:
+        raise ValueError("need at least two time tags to determine the sample rate")
+    step = float(np.median(d))
+    return block_samples / (step / 1000.0)
+
+
+def scan_dld(path, tag_marks: str = "block_start") -> list[dict]:
+    """
+    Cheap description of a DLD file for indexing: one dict per continuous
+    segment with ``serial, component, starttime, endtime, sampling_rate,
+    npts`` (Timestamps, UTC). Reads the header and tags only.
+    """
+    hdr = read_dld_header(path)
+    buf = Path(path).read_bytes()
+    block, period, n = _layout(buf)
+    tags = _tags_from_buffer(buf, block, period, n)
+    ns = block // 3
+    sr = _sampling_rate(tags, ns)
+    out = []
+    for b0, b1, t0 in _segments(tags, ns, sr, tag_marks):
+        npts = (b1 - b0 + 1) * ns
+        out.append(dict(serial=hdr["serial"], component=hdr["component"], starttime=t0,
+                        endtime=t0 + pd.Timedelta(seconds=(npts - 1) / sr),
+                        sampling_rate=sr, npts=npts, project_name=hdr["project_name"],
+                        firmware=hdr["firmware"]))
+    return out
+
+
+def read_dld(path, starttime=None, endtime=None, tag_marks: str = "block_start",
+             headonly: bool = False, station: str | None = None, network: str = ""):
+    """
+    Read one DLD file into an ObsPy Stream (one Trace per gap-free segment).
+
+    Parameters
+    ----------
+    starttime, endtime : optional (UTCDateTime / str / Timestamp)
+        Only decode the blocks needed for this window (then trimmed).
+    tag_marks : "block_start" (default) or "block_end"
+        Timing convention, see module docstring.
+    headonly : bool
+        Traces without data (stats only).
+    station, network : str
+        Codes to put in the header. Default station = last 5 digits of the
+        serial (SEED allows 5 characters); ``stats.serial`` has the full one.
+
+    Each trace has ``stats.channel`` = component letter (X/Y/Z),
+    ``stats.serial``, ``stats.dld`` (header dict, file path, tag summary),
+    ``stats.coordinates`` (median tag position) and data as int32 counts.
+    """
+    from obspy import Stream, Trace, UTCDateTime
+    from obspy.core.util import AttribDict
+
+    path = Path(path)
+    hdr = read_dld_header(path)
+    buf = path.read_bytes()
+    block, period, n = _layout(buf)
+    tags = _tags_from_buffer(buf, block, period, n)
+    ns = block // 3
+    sr = _sampling_rate(tags, ns)
+
+    def _u(t):
+        if t is None:
+            return None
+        return t if isinstance(t, UTCDateTime) else UTCDateTime(pd.Timestamp(t).isoformat())
+
+    t_lo, t_hi = _u(starttime), _u(endtime)
+    st = Stream()
+    for s0, s1, t0 in _segments(tags, ns, sr, tag_marks):
+        seg_start = UTCDateTime(t0.isoformat())
+        block_dt = ns / sr
+        b0, b1 = s0, s1
+        if t_lo is not None:
+            b0 = max(s0, s0 + int(np.floor((t_lo - seg_start) / block_dt)))
+        if t_hi is not None:
+            b1 = min(s1, s0 + int(np.floor((t_hi - seg_start) / block_dt)))
+        if b1 < b0:
+            continue
+        first_block_start = seg_start + (b0 - s0) * block_dt
+        npts = (b1 - b0 + 1) * ns
+        if headonly:
+            data = np.array([], dtype=np.int32)
+        else:
+            raw = np.frombuffer(buf, np.uint8, count=(b1 - b0 + 1) * period,
+                                offset=HEADER_SIZE + b0 * period).reshape(-1, period)[:, :block]
+            data = _decode24(np.ascontiguousarray(raw))
+        tr = Trace(data=data)
+        tr.stats.sampling_rate = sr
+        tr.stats.starttime = first_block_start
+        tr.stats.network = network
+        tr.stats.station = station if station is not None else hdr["serial"][-5:]
+        tr.stats.channel = hdr["component"]
+        tr.stats.serial = hdr["serial"]
+        sub = tags.iloc[b0:b1 + 1]
+        tr.stats.coordinates = AttribDict(latitude=float(sub["latitude"].median()),
+                                          longitude=float(sub["longitude"].median()),
+                                          elevation=float(hdr["altitude"]))
+        tr.stats.dld = AttribDict(path=str(path), tag_marks=tag_marks, first_block=int(b0),
+                                  last_block=int(b1), header={k: v for k, v in hdr.items()
+                                                              if not isinstance(v, pd.Timestamp)})
+        if headonly:
+            tr.stats.npts = npts
+        st.append(tr)
+    if not headonly and (t_lo is not None or t_hi is not None):
+        st.trim(t_lo, t_hi, nearest_sample=False)
+    return st
+
+
+def read_dld_node(files, **kw):
+    """
+    Read several DLD files (e.g. seis000X/Y/Z of one node, or consecutive
+    files seis000..seis00N) into one Stream, merged per channel.
+    """
+    from obspy import Stream
+
+    st = Stream()
+    for f in files:
+        st += read_dld(f, **kw)
+    st.merge(method=1)
+    return st
+
+
+# --------------------------------------------------------------------------- #
+# Verification against a SoloLite export
+# --------------------------------------------------------------------------- #
+def compare_with_export(dld_tr, exported_tr, max_lag_s: float = 5.0) -> dict:
+    """
+    Compare a trace read from DLD with the same channel exported by SoloLite
+    (MiniSEED/SEG-Y). Returns the time shift that best aligns them
+    (``lag_s``: positive = DLD is late), the correlation and the amplitude
+    ratio. ``lag_s`` ≈ 0 confirms ``tag_marks="block_start"``; ≈ -block
+    duration means use ``"block_end"``; a ratio of -1 means the export
+    already inverted polarity, 10^(gain/20) that it removed the gain.
+    """
+    from obspy.signal.cross_correlation import correlate, xcorr_max
+
+    a, b = dld_tr.copy(), exported_tr.copy()
+    if a.stats.sampling_rate != b.stats.sampling_rate:
+        b.resample(a.stats.sampling_rate)
+    t0, t1 = max(a.stats.starttime, b.stats.starttime), min(a.stats.endtime, b.stats.endtime)
+    if t1 - t0 < 2 * max_lag_s:
+        raise ValueError("traces overlap too little")
+    a.trim(t0, t1); b.trim(t0, t1)
+    n = min(a.stats.npts, b.stats.npts)
+    x, y = a.data[:n].astype(float), b.data[:n].astype(float)
+    shift = int(max_lag_s * a.stats.sampling_rate)
+    cc = correlate(x - x.mean(), y - y.mean(), shift)
+    lag, val = xcorr_max(cc, abs_max=True)
+    ratio = float(np.dot(x, y) / np.dot(y, y)) if np.dot(y, y) else np.nan
+    return {"lag_s": -lag / a.stats.sampling_rate, "correlation": float(val), "amplitude_ratio": ratio,
+            "start_difference_s": float(a.stats.starttime - b.stats.starttime)}

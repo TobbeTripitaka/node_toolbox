@@ -70,9 +70,11 @@ __all__ = [
 WAVEFORM_EXTENSIONS = {
     ".miniseed": "MSEED", ".mseed": "MSEED", ".msd": "MSEED", ".seed": "MSEED",
     ".sgy": "SEGY", ".segy": "SEGY",
+    ".dld": "DLD",          # raw SmartSolo files, read with smartsolo_dld
 }
 
-DEFAULT_COMPONENT_MAP = {"Z": "Z", "N": "N", "E": "E"}
+# Z/N/E kept; raw DLD axes X (north-south) -> N, Y (east-west) -> E (SmartSolo manual)
+DEFAULT_COMPONENT_MAP = {"Z": "Z", "N": "N", "E": "E", "X": "N", "Y": "E"}
 _SERIAL_RE = re.compile(r"(?<!\d)(\d{9})(?!\d)")
 _COMP_RE = re.compile(r"(?:^|[._\-])([ZNEXY123])(?=[._\-]|$)", re.IGNORECASE)
 
@@ -135,10 +137,10 @@ def component_from(path, trace) -> str:
 # --------------------------------------------------------------------------- #
 def index_waveforms(root, serial_from=None, component_func=None, mapping=None, extensions=None,
                     cache: str | os.PathLike | None = None, refresh: bool = False,
-                    verbose: bool = False) -> pd.DataFrame:
+                    tag_marks: str = "block_start", verbose: bool = False) -> pd.DataFrame:
     """
-    Scan a folder tree (or list of folders/files) for MiniSEED and SEG-Y files
-    and return one row per trace id per file:
+    Scan a folder tree (or list of folders/files) for MiniSEED, SEG-Y and raw
+    SmartSolo DLD files and return one row per trace id per file:
 
     ``path, format, serial, component, network, station, location, channel,
     starttime, endtime, sampling_rate, npts``
@@ -148,7 +150,9 @@ def index_waveforms(root, serial_from=None, component_func=None, mapping=None, e
     a full hard drive.
 
     ``serial_from(path, trace) -> str`` and ``component_func(path, trace) -> str``
-    override how the node serial and component letter are found.
+    override how the node serial and component letter are found. DLD files
+    carry the serial and component (X/Y/Z) in their header; ``tag_marks`` is
+    the DLD timing convention (see ``smartsolo_dld``).
     """
     from obspy import read
 
@@ -189,6 +193,23 @@ def index_waveforms(root, serial_from=None, component_func=None, mapping=None, e
                 rows += g.to_dict("records")
                 continue
         fmt = exts[f.suffix.lower()]
+        if fmt == "DLD":
+            import smartsolo_dld as dld
+            try:
+                segs = dld.scan_dld(f, tag_marks=tag_marks)
+            except Exception as exc:  # noqa: BLE001
+                warnings.warn(f"could not read {f}: {exc}")
+                continue
+            for g in segs:
+                rows.append(dict(path=key, format="DLD", serial=g["serial"],
+                                 component=g["component"], network="", station="",
+                                 location="", channel=g["component"],
+                                 starttime=g["starttime"], endtime=g["endtime"],
+                                 sampling_rate=g["sampling_rate"], npts=g["npts"],
+                                 size=stat.st_size, mtime=int(stat.st_mtime)))
+            if verbose:
+                print("indexed", f)
+            continue
         try:
             st = read(str(f), format=fmt, headonly=True)
         except Exception as exc:  # noqa: BLE001 - keep going on a bad file
@@ -304,10 +325,17 @@ def seed_codes(serial, time=None, mapping=None, sampling_rate=100.0, component="
 # --------------------------------------------------------------------------- #
 # Extraction
 # --------------------------------------------------------------------------- #
-def _read_window(path, fmt, t0, t1):
+def _read_window(path, fmt, t0, t1, tag_marks="block_start"):
     from obspy import read
 
-    if fmt == "MSEED":
+    if fmt == "DLD":
+        import smartsolo_dld as dld
+        st = dld.read_dld(path, starttime=t0, endtime=t1, tag_marks=tag_marks)
+        for tr in st:
+            tr.stats.pop("dld", None)
+            tr.stats.pop("coordinates", None)
+            tr.stats.gain_removed = False
+    elif fmt == "MSEED":
         st = read(path, format="MSEED", starttime=t0, endtime=t1)
     else:
         st = read(path, format=fmt)
@@ -323,7 +351,8 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
                       components=None, component_map=None, out_dir=None, chunk=None,
                       merge_method: int = 1, fill_value=None, return_stream: bool = True,
                       default_network: str = "XX", encoding=None, component_func=None,
-                      invert_polarity="auto", verbose: bool = False):
+                      invert_polarity="auto", out_format: str = "MSEED",
+                      tag_marks: str = "block_start", verbose: bool = False):
     """
     Cut waveforms for the selected deployments.
 
@@ -345,7 +374,12 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
         Map component letters found in the files to Z/N/E, e.g.
         ``{"X": "E", "Y": "N"}``. Default keeps Z/N/E.
     out_dir : path, optional
-        Write MiniSEED files to ``out_dir/NET/STA/NET.STA.LOC.CHA__start__end.mseed``.
+        Write files to ``out_dir/NET/STA/NET.STA.LOC.CHA__start__end.mseed``
+        (or ``.sgy``).
+    out_format : "MSEED" (default) or "SEGY"
+        SEG-Y traces are limited to 32767 samples, so long windows are split
+        into several traces (whole seconds) inside each file.
+    tag_marks : DLD timing convention (see ``smartsolo_dld``).
     chunk : str, optional
         With ``out_dir``: split output files, e.g. ``"1D"`` or ``"1h"``.
     merge_method, fill_value :
@@ -356,8 +390,9 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
         relative to the FDSN convention (positive = up / north / east):
         the manual defines positive = case moving down / south / west, and
         AusPass confirmed by controlled tests that freshly exported data need
-        ``x -1`` on every channel. ``"auto"`` inverts when the deployment's
-        ``device_type`` contains "IGU-16" (or is unknown). The inversion is
+        ``x -1`` on every channel. ``"auto"`` inverts unless the deployment
+        is a BD3C-5 broadband node (``device_type`` contains "BD3C", or the
+        serial starts with 5900 when the type is unknown). The inversion is
         recorded in ``stats.processing`` and ``stats.polarity_inverted``.
         Use ``build_inventory(..., polarity_inverted=...)`` with the same choice.
     component_func : callable(path, trace) -> str, optional
@@ -402,7 +437,7 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
 
         st = Stream()
         for (path, fmt), grp in rows.groupby(["path", "format"], sort=False):
-            part = _read_window(path, fmt, t0, t1)
+            part = _read_window(path, fmt, t0, t1, tag_marks)
             comps = set(grp["component"])
             for tr in part:
                 comp = comp_of(path, tr)
@@ -420,7 +455,11 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
         st.trim(t0, t1 - _EPS, nearest_sample=False)   # end is exclusive
         flip = invert_polarity
         if flip == "auto":
-            flip = "IGU-16" in str(dep.get("device_type", "IGU-16")) or pd.isna(dep.get("device_type", np.nan))
+            dtype = dep.get("device_type", np.nan)
+            if pd.isna(dtype) or not str(dtype):
+                flip = not str(dep["serial"]).startswith("5900")    # BD3C-5 needs no flip
+            else:
+                flip = "BD3C" not in str(dtype)
         for tr in st:
             tr.stats.polarity_inverted = bool(flip)
             if flip:
@@ -437,7 +476,7 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
             print(f"{dep.get('deployment_id', dep['serial'])}: {len(st)} traces")
 
         if out_dir is not None:
-            written += _write_stream(st, out_dir, t0, t1, chunk, encoding)
+            written += _write_stream(st, out_dir, t0, t1, chunk, encoding, out_format)
         if return_stream:
             out += st
 
@@ -445,7 +484,33 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
     return out
 
 
-def _write_stream(st, out_dir, t0, t1, chunk, encoding):
+def _segy_pieces(sub):
+    """Split traces into <= 32767 samples, starting on whole seconds when possible."""
+    from obspy import Stream
+
+    out = Stream()
+    for tr in sub:
+        sr = tr.stats.sampling_rate
+        n = int(32767 // sr * sr) if sr <= 32767 else 32767
+        n = max(n, 1)
+        for i in range(0, tr.stats.npts, n):
+            piece = tr.copy()
+            piece.data = tr.data[i:i + n]
+            piece.stats.starttime = tr.stats.starttime + i / sr
+            for k in ("coordinates", "processing", "serial", "deployment_id", "polarity_inverted",
+                      "gain_removed", "dld", "mseed"):
+                piece.stats.pop(k, None)
+            if piece.data.dtype.kind == "i":
+                piece.data = piece.data.astype(np.int32)
+            else:
+                piece.data = piece.data.astype(np.float32)
+            out.append(piece)
+    return out
+
+
+def _write_stream(st, out_dir, t0, t1, chunk, encoding, out_format="MSEED"):
+    import warnings as _w
+
     from obspy import UTCDateTime
 
     out_dir = Path(out_dir)
@@ -468,12 +533,20 @@ def _write_stream(st, out_dir, t0, t1, chunk, encoding):
             net, sta, loc, cha = tr_id.split(".")
             d = out_dir / (net or "_") / (sta or "_")
             d.mkdir(parents=True, exist_ok=True)
-            fn = d / f"{tr_id}__{a.strftime('%Y%m%dT%H%M%SZ')}__{b.strftime('%Y%m%dT%H%M%SZ')}.mseed"
+            ext = "sgy" if out_format.upper() == "SEGY" else "mseed"
+            fn = d / f"{tr_id}__{a.strftime('%Y%m%dT%H%M%SZ')}__{b.strftime('%Y%m%dT%H%M%SZ')}.{ext}"
             for tr in sub:
                 if tr.data.dtype == np.float64:
                     tr.data = tr.data.astype(np.float32)
-            kw = {"encoding": encoding} if encoding else {}
-            sub.write(str(fn), format="MSEED", **kw)
+            if ext == "sgy":
+                pieces = _segy_pieces(sub)
+                enc = 2 if pieces[0].data.dtype == np.int32 else 5
+                with _w.catch_warnings():
+                    _w.simplefilter("ignore")
+                    pieces.write(str(fn), format="SEGY", data_encoding=enc)
+            else:
+                kw = {"encoding": encoding} if encoding else {}
+                sub.write(str(fn), format="MSEED", **kw)
             paths.append(fn)
     return paths
 
@@ -489,7 +562,7 @@ _ORIENT_RAW = {"Z": (0.0, 90.0), "N": (180.0, 0.0), "E": (270.0, 0.0)}    # raw 
 
 def build_inventory(selection, mapping=None, components=("Z", "N", "E"), sampling_rate=None,
                     stream=None, default_network: str = "XX", source: str = "node_toolbox",
-                    response: str | None = None, gain_db: float = 0.0,
+                    response: str | None = None, gain_db="auto",
                     polarity_inverted: bool = True):
     """
     Build an ObsPy Inventory (StationXML) for the selected deployments:
@@ -519,6 +592,11 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
         back to nominal when the test failed or was noisy.
     The test values cannot yet be assigned to Z/N/E individually because the
     log's Ch1/Ch2/Ch3 -> axis mapping is not documented.
+
+    ``gain_db``: preamp gain to include in the response. ``"auto"`` uses the
+    deployment's ``channel_1_gain`` (from the log) unless the stream says the
+    gain was removed (``stats.gain_removed``); raw DLD data contain the gain,
+    SoloLite exports with "Remove Gain" do not (use ``gain_db=0`` for those).
     """
     import smartsolo_node as sn
     from obspy import UTCDateTime
@@ -529,7 +607,9 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
 
     for _, dep in selection.iterrows():
         t0, t1 = _utc(dep["start"]), _utc(dep["end"])
-        sr = sampling_rate or dep.get("sample_rate") or 100.0
+        sr = sampling_rate or dep.get("sample_rate_hz")
+        if sr is None or pd.isna(sr):
+            sr = 1e5 / dep["sample_rate"] if pd.notna(dep.get("sample_rate", np.nan)) else 100.0
         if stream is not None:
             trs = [tr for tr in stream if getattr(tr.stats, "serial", None) == str(dep["serial"])
                    and getattr(tr.stats, "deployment_id", None) == dep.get("deployment_id")]
@@ -546,15 +626,25 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
         net_code, sta_code = chans[0][0], chans[0][1]
         sensor = Equipment(type="Geophone", description=str(dep.get("device_type", "SmartSolo")),
                            manufacturer="DTCC SmartSolo", serial_number=str(dep["serial"]))
+        elev = float(dep["elevation"]) if pd.notna(dep.get("elevation", np.nan)) else 0.0
         sta = Station(code=sta_code, latitude=float(dep["latitude"]),
-                      longitude=float(dep["longitude"]), elevation=float(dep["elevation"]),
+                      longitude=float(dep["longitude"]), elevation=elev,
                       start_date=t0, end_date=t1, creation_date=t0,
                       site=Site(name=f"SmartSolo {dep['serial']} ({dep.get('deployment_id', '')})"),
                       description=(f"first stable GPS fix {dep.get('fix_time')}; "
                                    f"drift {dep.get('drift_m', np.nan):.1f} m"))
         resp = None
+        g = gain_db
+        if g == "auto":
+            removed = False
+            if stream is not None:
+                trs_ = [tr for tr in stream if getattr(tr.stats, "serial", None) == str(dep["serial"])]
+                removed = any(getattr(tr.stats, "gain_removed", False) for tr in trs_)
+            g = 0.0 if removed else float(dep.get("channel_1_gain", 0) or 0)
+            if pd.isna(g):
+                g = 0.0
         if response == "auspass":
-            resp = sn.auspass_response()
+            resp = sn.auspass_response(gain_db=g)
         elif response is not None:
             pars = dict(f0=sn.NOMINAL_5HZ["f0"], damping=sn.NOMINAL_5HZ["damping"],
                         sensitivity=sn.NOMINAL_5HZ["sensitivity"])
@@ -562,13 +652,13 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
                     and not bool(dep.get("geophone_test_noisy", True)):
                 pars = dict(f0=dep["test_resonate_freq_hz_mean"], damping=dep["test_damping_mean"],
                             sensitivity=dep["test_sensitivity_mean"])
-            resp = sn.geophone_response(pars["f0"], pars["damping"], pars["sensitivity"], gain_db)
+            resp = sn.geophone_response(pars["f0"], pars["damping"], pars["sensitivity"], g)
         orient = _ORIENT if polarity_inverted else _ORIENT_RAW
         for n, s, l, c, rate in chans:
             az, dip = orient.get(c[-1], (0.0, 0.0))
             sta.channels.append(Channel(
                 code=c, location_code=l, latitude=float(dep["latitude"]),
-                longitude=float(dep["longitude"]), elevation=float(dep["elevation"]),
+                longitude=float(dep["longitude"]), elevation=elev,
                 depth=0.0, azimuth=az, dip=dip, sample_rate=float(rate),
                 start_date=t0, end_date=t1, sensor=sensor, response=resp))
         nets.setdefault(net_code, Network(code=net_code, stations=[])).stations.append(sta)
@@ -584,9 +674,14 @@ def extract_region(log_root, waveform_root, mapping=None, point=None, radius_km=
                    polygon=None, start=None, end=None, out_dir="output", components=None,
                    chunk=None, deployments_cache=None, index_cache=None,
                    return_stream=True, invert_polarity="auto", response="auspass",
-                   **select_kw):
+                   out_format="MSEED", use_dld_positions=True, **select_kw):
     """
-    Logs -> deployments -> selection -> waveforms, all in one call.
+    Logs (and/or raw DLD headers) -> deployments -> selection -> waveforms,
+    all in one call. ``waveform_root`` may hold MiniSEED, SEG-Y and/or raw
+    DLD files; with ``use_dld_positions`` (default) nodes without a log are
+    located from the GPS positions in their DLD time tags, and log
+    deployments are widened to cover the recorded data. ``log_root=None``
+    works from DLD files alone.
 
     Writes to ``out_dir``: ``stations.csv``, ``stations.gpkg``,
     ``stations.xml`` (StationXML) and MiniSEED files under ``out_dir/mseed``.
@@ -597,7 +692,13 @@ def extract_region(log_root, waveform_root, mapping=None, point=None, radius_km=
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    deps = loc.build_deployments(log_root, cache=deployments_cache)
+    deps = loc.build_deployments(log_root, cache=deployments_cache) if log_root is not None else None
+    if use_dld_positions:
+        dld_deps = loc.build_deployments_from_dld(waveform_root)
+        if len(dld_deps):
+            deps = dld_deps if deps is None or deps.empty else loc.combine_deployments(deps, dld_deps)
+    if deps is None:
+        raise ValueError("no deployments: give log_root and/or DLD files in waveform_root")
     sel = loc.select_deployments(deps, point=point, radius_km=radius_km, polygon=polygon,
                                  start=start, end=end, **select_kw)
     if sel.empty:
@@ -606,10 +707,46 @@ def extract_region(log_root, waveform_root, mapping=None, point=None, radius_km=
     loc.export_stations(sel, out_dir / "stations.gpkg")
     index = index_waveforms(waveform_root, mapping=mapping, cache=index_cache)
     st = extract_waveforms(sel, index, mapping=mapping, components=components,
-                           out_dir=out_dir / "mseed", chunk=chunk, return_stream=return_stream,
-                           invert_polarity=invert_polarity)
+                           out_dir=out_dir / ("segy" if out_format.upper() == "SEGY" else "mseed"),
+                           chunk=chunk, return_stream=return_stream,
+                           invert_polarity=invert_polarity, out_format=out_format)
     flipped = bool(st[0].stats.polarity_inverted) if len(st) else invert_polarity is not False
     inv = build_inventory(sel, mapping=mapping, stream=st if return_stream and len(st) else None,
                           response=response, polarity_inverted=flipped)
     inv.write(str(out_dir / "stations.xml"), format="STATIONXML")
     return sel, st, inv
+
+
+def convert_dld(dld_root, out_dir="output", mapping=None, out_format="MSEED", chunk="1D",
+                log_root=None, start=None, end=None, invert_polarity="auto", components=None,
+                response="auspass", tag_marks="block_start"):
+    """
+    Convert raw SmartSolo DLD files straight to MiniSEED or SEG-Y (+ station
+    table and StationXML), without SoloLite.
+
+    Every recording found under ``dld_root`` is converted (optionally only
+    ``[start, end)``); positions come from the logs in ``log_root`` if given,
+    else from the GPS positions in the DLD time tags. Returns
+    ``(deployments, inventory, written_files)``; data are not kept in memory.
+    """
+    import smartsolo_locate as loc
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    deps = loc.build_deployments_from_dld(dld_root, tag_marks=tag_marks)
+    if log_root is not None:
+        deps = loc.combine_deployments(loc.build_deployments(log_root), deps)
+    sel = loc.select_deployments(deps, start=start, end=end)
+    index = index_waveforms(dld_root, mapping=mapping, tag_marks=tag_marks)
+    has_data = [bool(((index["serial"] == str(d["serial"])) & (index["endtime"] >= d["sel_start"])
+                      & (index["starttime"] <= d["sel_end"])).any()) for _, d in sel.iterrows()]
+    sel = sel[has_data]          # only deployments with DLD data
+    st = extract_waveforms(sel, index, mapping=mapping, components=components,
+                           out_dir=out_dir / out_format.lower(), chunk=chunk,
+                           return_stream=False, invert_polarity=invert_polarity,
+                           out_format=out_format, tag_marks=tag_marks)
+    flipped = invert_polarity is not False
+    inv = build_inventory(sel, mapping=mapping, response=response, polarity_inverted=flipped)
+    inv.write(str(out_dir / "stations.xml"), format="STATIONXML")
+    loc.export_stations(sel, out_dir / "stations.csv")
+    return sel, inv, st.written_files

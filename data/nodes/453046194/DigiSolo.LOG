@@ -1,0 +1,385 @@
+<00006,00005,00001,00000,00000,00000,00000>
+
+[DeviceInfo00001]
+BootReason = 0087
+Firmware Version = V1.1.4.2be
+Serial Number = 453046194
+BootLoader Version = V1.0.1.8
+Script Name = HR3C 5HZ Standard Script
+Project Name = IGU-16HR 3C 5HZ
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2025/09/02"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GNSS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 36
+Channel 2 Gain = 36
+Channel 3 Gain = 36
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+ADC LP Mode = 1
+Ch1 Resistance = 1.8143, 1.8086
+Ch1 Resonate Freq = 146.7552
+Ch1 Damping = 0.4350
+Ch1 Sensitivity = 142.9342
+Ch1 RMS Noise = 1.6364
+Ch1 Spread Noise = 102.2737
+
+Ch2 Resistance = 1.8191, 1.8198
+Ch2 Resonate Freq = 4.1109
+Ch2 Damping = 0.6275
+Ch2 Sensitivity = 68.0911
+Ch2 RMS Noise = 1.5826
+Ch2 Spread Noise = 23540.1406
+
+Ch3 Resistance = 1.8133, 1.8112
+Ch3 Resonate Freq = 441.4924
+Ch3 Damping = 0.5341
+Ch3 Sensitivity = 253.0009
+Ch3 RMS Noise = 1.6518
+Ch3 Spread Noise =  12.8856
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "21XL8"
+SD Production Revision = 16
+SD Production SN = 908158934
+SD Manufacture Date = 0x0193
+
+
+[BatteryPowerOnStop]
+
+[DeviceInfo00002]
+BootReason = 0300
+Firmware Version = V1.1.4.2be
+Serial Number = 453046194
+BootLoader Version = V1.0.1.8
+Boot RTC ="2015/12/18,02:18:32"
+Script Name = HR3C 5HZ Standard Script
+Project Name = IGU-16HR 3C 5HZ
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2025/09/02"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+Existing DATA Segments = 0
+Starting DATA Segment# = 0
+GNSS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 36
+Channel 2 Gain = 36
+Channel 3 Gain = 36
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+ADC LP Mode = 1
+Ch1 Resistance = 1.8157, 1.8202
+Ch1 Resonate Freq = 4.9867
+Ch1 Damping = 0.6967
+Ch1 Sensitivity = 77.1391
+Ch1 RMS Noise = 1.6167
+Ch1 Spread Noise = 674.8910
+
+Ch2 Resistance = 1.8217, 1.8251
+Ch2 Resonate Freq = 4.7179
+Ch2 Damping = 0.6916
+Ch2 Sensitivity = 74.2175
+Ch2 RMS Noise = 1.6240
+Ch2 Spread Noise = 1268.9136
+
+Ch3 Resistance = 1.8160, 1.8231
+Ch3 Resonate Freq = 5.1603
+Ch3 Damping = 0.7156
+Ch3 Sensitivity = 79.7458
+Ch3 RMS Noise = 1.5817
+Ch3 Spread Noise = 2736.0200
+
+NMEA41 = 1
+USE_MAX_M10s = 1
+GNSS Lock Time = "2026/06/05,01:40:42"
+GNSS Tick = 34
+Satellite Number = 07
+GPS Strength     = "48,45,43,42,41,40,39"
+Satellite ID     = "22, 6,50,14,41,42, 9"
+Calendar Reference = 2026/06/05,01:40 <-> 2025/09/02,00:00
+Wait Time to Work = 0(0x00000000)
+Voltage = 8.2098
+Free TF Memory = 120975
+Sensor Type = TMPx75
+Booting Temperature = 25.0000
+Upper Resistance Limit = 1905, 1926.4
+Lower Resistance Limit = 1640, 1658.5
+Booting eCompass North =   0.000
+Booting Tilted Angle =   2.229
+Booting Roll Angle   = 2.186
+Booting Pitch Angle  = 0.437
+Geophone Test Passed = 1
+Sync Delay = 128.4639
+Sync Count = 1
+
+[Notify00001]
+UTC Time = "2026/06/05,01:41:13"
+Start Acquisition FileName = "Seis000.DLD"
+
+[GNSS00001]
+GNSS Status = GNSS Cycle Off
+GNSS Tick = 71
+UTC Time = "2026/06/05,01:41:13"
+DAC Value = 2068
+ADC Sync Value = 2907, 49, 22300
+Phase Error = 0
+Max Phase Error = 0
+
+[GNSS00002]
+GNSS Status = GNSS Synchronization
+UTC Time = "2026/06/05,01:48:49"
+Leap Second = 0
+eCompass North =  82.897
+Tilted Angle =   8.801
+Roll Angle   = -7.730
+Pitch Angle  = 4.183
+GNSS Power = OFF
+Latest Fix UTC Time = "2026/06/05,01:41:20"
+Satellite Number = 10
+GPS Strength     = "45,45,44,43,42,42,41,41,40,39"
+Satellite ID     = " 6,22,11,50, 4,19,17,42,14,40"
+Longitude = 116.760668667
+Latitude   = 39.596145833
+Altitude   = Unknown
+RTC Time = "2026/06/05,01:48:53"
+
+[Temperature00001]
+UTC Time = "2026/06/05,01:50:49"
+Temperature = 25.6875
+
+[GNSS00003]
+GNSS Status = GNSS Cycle On
+GNSS Tick = 572
+UTC Time = "2026/06/05,01:50:49"
+
+[GNSS00004]
+GNSS Status = GNSS Cycle Off
+GNSS Tick = 41
+UTC Time = "2026/06/05,01:51:37"
+DAC Value = 2070
+ADC Sync Value = 2907, 83, 36853
+Phase Error = 8
+Max Phase Error = 8
+
+[GNSS00005]
+GNSS Status = GNSS Synchronization
+UTC Time = "2026/06/05,01:56:49"
+Leap Second = 0
+eCompass North = 100.678
+Tilted Angle =   0.658
+Roll Angle   = -0.055
+Pitch Angle  = -0.656
+GNSS Power = OFF
+Latest Fix UTC Time = "2026/06/05,01:51:34"
+Satellite Number = 11
+GPS Strength     = "45,44,44,42,41,40,39,39,39,38,37"
+Satellite ID     = "22,17,19,11, 9, 6, 4,14,42, 3,50"
+Longitude = 116.760428167
+Latitude   = 39.595963000
+Altitude   = 17.6
+RTC Time = "2026/06/05,01:57:04"
+
+[DeviceInfo00003]
+BootReason = 0007
+Firmware Version = V1.1.4.2be
+Serial Number = 453046194
+BootLoader Version = V1.0.1.8
+Boot RTC ="2026/09/24,02:35:59"
+Script Name = HR3C 5HZ Standard Script
+Project Name = IGU-16HR 3C 5HZ
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2025/09/02"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GNSS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 36
+Channel 2 Gain = 36
+Channel 3 Gain = 36
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+
+[DeviceInfo00004]
+BootReason = 0007
+Firmware Version = V1.1.4.2be
+Serial Number = 453046194
+BootLoader Version = V1.0.1.8
+Boot RTC ="2026/09/24,02:37:09"
+Script Name = HR3C 5HZ Standard Script
+Project Name = IGU-16HR 3C 5HZ
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2025/09/02"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GNSS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 36
+Channel 2 Gain = 36
+Channel 3 Gain = 36
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+
+[DeviceInfo00005]
+BootReason = 0007
+Firmware Version = V1.1.4.2be
+Serial Number = 453046194
+BootLoader Version = V1.0.1.8
+Boot RTC ="2026/09/24,02:45:45"
+Script Name = HR3C 5HZ Standard Script
+Project Name = IGU-16HR 3C 5HZ
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2025/09/02"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GNSS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 36
+Channel 2 Gain = 36
+Channel 3 Gain = 36
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+ADC LP Mode = 1
+Ch1 Resistance = 1.8141, 1.8076
+Ch1 Resonate Freq = 219.6405
+Ch1 Damping = 0.3743
+Ch1 Sensitivity = 166.9111
+Ch1 RMS Noise = 194.7083
+Ch1 Spread Noise = 741489.0000
+
+Ch2 Resistance = 1.7989, 1.7936
+Ch2 Resonate Freq = 254.1353
+Ch2 Damping = 0.3528
+Ch2 Sensitivity = 173.1525
+Ch2 RMS Noise = 71.7813
+Ch2 Spread Noise = 62138.6133
+
+Ch3 Resistance = 1.7467, 1.6541
+Ch3 Resonate Freq = 119.0037
+Ch3 Damping = 0.1274
+Ch3 Sensitivity = 159.7901
+Ch3 RMS Noise = 205.2613
+Ch3 Spread Noise = 2245.7280
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "21XL8"
+SD Production Revision = 16
+SD Production SN = 908158934
+SD Manufacture Date = 0x0193
+
+
+[BatteryPowerOnStop]
+
+[DeviceInfo00006]
+BootReason = 0087
+Firmware Version = V1.1.4.2be
+Serial Number = 453046194
+BootLoader Version = V1.0.1.8
+Script Name = HR3C 5HZ Standard Script
+Project Name = IGU-16HR 3C 5HZ
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2025/09/02"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GNSS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 36
+Channel 2 Gain = 36
+Channel 3 Gain = 36
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+ADC LP Mode = 1
+Ch1 Resistance = 1.8020, 1.8300
+Ch1 Resonate Freq = 3.8102
+Ch1 Damping = -0.1416
+Ch1 Sensitivity = 67.9581
+Ch1 RMS Noise = 1.6092
+Ch1 Spread Noise = 5520.2939
+
+Ch2 Resistance = 1.8095, 1.9405
+Ch2 Resonate Freq = 0.0000
+Ch2 Damping = 0.0000
+Ch2 Sensitivity = 0.0000
+Ch2 RMS Noise = 1.6383
+Ch2 Spread Noise = 60050.3438
+
+Ch3 Resistance = 1.7096, 1.5961
+Ch3 Resonate Freq = 0.0000
+Ch3 Damping = 0.0000
+Ch3 Sensitivity = 0.0000
+Ch3 RMS Noise = 1.6003
+Ch3 Spread Noise = 82011.2500
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "21XL8"
+SD Production Revision = 16
+SD Production SN = 908158934
+SD Manufacture Date = 0x0193
+
+
+[BatteryPowerOnStop]

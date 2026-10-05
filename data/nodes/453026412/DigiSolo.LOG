@@ -1,0 +1,480 @@
+<00005,00016,00004,00001,00001,00000,00001>
+
+[DeviceInfo00001]
+BootReason = 0087
+Firmware Version = V1.1.2.0be
+Serial Number = 453026412
+BootLoader Version = V1.0.1.8
+Script Name = HR 3C 5Hz Standard Script
+Project Name = IGU-16HR 3C 5Hz
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/04/04"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 400
+Channel 1 Gain = 18
+Channel 2 Gain = 18
+Channel 3 Gain = 18
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+
+[DeviceInfo00002]
+BootReason = 0007
+Firmware Version = V1.1.2.0be
+Serial Number = 453026412
+BootLoader Version = V1.0.1.8
+Boot RTC ="2015/12/18,02:00:06"
+Script Name = HR 3C 5Hz Standard Script
+Project Name = IGU-16HR 3C 5Hz
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/04/04"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 400
+Channel 1 Gain = 18
+Channel 2 Gain = 18
+Channel 3 Gain = 18
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+Ch1 Resistance = 1.7759, 1.7830
+Ch1 Resonate Freq = 148.3194
+Ch1 Damping = 0.4192
+Ch1 Sensitivity = 140.8971
+Ch1 RMS Noise = 1.1874
+Ch1 Spread Noise =  16.0648
+
+Ch2 Resistance = 1.7644, 1.7827
+Ch2 Resonate Freq = 4.4981
+Ch2 Damping = 0.6400
+Ch2 Sensitivity = 71.7223
+Ch2 RMS Noise = 1.1326
+Ch2 Spread Noise = 6097.1309
+
+Ch3 Resistance = 1.7632, 1.7689
+Ch3 Resonate Freq = 439.9091
+Ch3 Damping = 0.5395
+Ch3 Sensitivity = 252.2937
+Ch3 RMS Noise = 1.1877
+Ch3 Spread Noise =   3.4735
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "21XL8"
+SD Production Revision = 16
+SD Production SN = 896998696
+SD Manufacture Date = 0x0187
+
+
+[BatteryPowerOnStop]
+
+[DeviceInfo00003]
+BootReason = 0300
+Firmware Version = V1.1.2.0be
+Serial Number = 453026412
+BootLoader Version = V1.0.1.8
+Boot RTC ="2015/12/18,06:13:43"
+Script Name = HR 3C 5Hz Standard Script
+Project Name = IGU-16HR 3C 5Hz
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/04/04"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+Existing DATA Segments = 0
+Starting DATA Segment# = 0
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 400
+Channel 1 Gain = 18
+Channel 2 Gain = 18
+Channel 3 Gain = 18
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+Ch1 Resistance = 1.7856, 1.8090
+Ch1 Resonate Freq = 5.1578
+Ch1 Damping = 0.7075
+Ch1 Sensitivity = 78.4107
+Ch1 RMS Noise = 1.1847
+Ch1 Spread Noise = 13835.4561
+
+Ch2 Resistance = 1.7785, 1.7988
+Ch2 Resonate Freq = 5.2409
+Ch2 Damping = 0.6373
+Ch2 Sensitivity = 77.7744
+Ch2 RMS Noise = 1.1451
+Ch2 Spread Noise = 4741.5371
+
+Ch3 Resistance = 1.7767, 1.7939
+Ch3 Resonate Freq = 5.3801
+Ch3 Damping = 0.5792
+Ch3 Sensitivity = 76.5728
+Ch3 RMS Noise = 1.1853
+Ch3 Spread Noise = 9852.5615
+
+GPS Lock Time = "2024/09/27,05:52:57"
+GPS Tick = 42
+Satellite Number = 04
+GPS Strength     = "43,42,42,40"
+Satellite ID     = "24,10,40,23"
+Calendar Reference = 2024/09/27,05:52 <-> 2023/04/04,00:00
+Wait Time to Work = 0(0x00000000)
+Voltage = 8.1744
+Free TF Memory = 120825
+Sensor Type = TMPx75
+Booting Temperature = 25.6875
+Upper Resistance Limit = 1905, 1931.4
+Lower Resistance Limit = 1640, 1662.7
+Booting eCompass North =   0.000
+Booting Tilted Angle =  10.966
+Booting Roll Angle   = 9.250
+Booting Pitch Angle  = 5.839
+Geophone Test Passed = 1
+Sync Delay = 256.9259
+Sync Count = 1
+
+[GPS00001]
+GPS Status = GPS Cycle Off
+GPS Tick = 84
+UTC Time = ","
+DAC Value = 2043
+ADC Sync Value = 2907, 52, 31742
+Phase Error = 1
+Max Phase Error = 1
+
+[Notify00001]
+UTC Time = "2024/09/27,05:53:51"
+Start Acquisition FileName = "Seis000.DLD"
+
+[GPS00002]
+GPS Status = GPS Synchronization
+UTC Time = "2024/09/27,06:01:03"
+Leap Second = 0
+eCompass North =  55.141
+Tilted Angle =  10.966
+Roll Angle   = 9.250
+Pitch Angle  = 5.839
+GPS Power = OFF
+Latest Fix UTC Time = "2024/09/27,05:53:39"
+Satellite Number = 09
+GPS Strength     = "45,44,41,41,39,39,38,36,35"
+Satellite ID     = "24,23,25,40,28,32,15,12,10"
+Longitude = 116.760010500
+Latitude   = 39.595504167
+Altitude   = 47.7
+RTC Time = "2024/09/27,06:01:09"
+
+[GPS00003]
+GPS Status = GPS Cycle On
+GPS Tick = 479
+UTC Time = "2024/09/27,06:01:03"
+
+[GPS00004]
+GPS Status = GPS Cycle Off
+GPS Tick = 48
+UTC Time = "2024/09/27,06:01:51"
+DAC Value = 2042
+ADC Sync Value = 2907, 88, 51372
+Phase Error = 9
+Max Phase Error = 9
+
+[Temperature00001]
+UTC Time = "2024/09/27,06:02:39"
+Temperature = 26.2500
+
+[GPS00005]
+GPS Status = GPS Synchronization
+UTC Time = "2024/09/27,06:09:03"
+Leap Second = 0
+eCompass North = 101.331
+Tilted Angle =   6.039
+Roll Angle   = 2.219
+Pitch Angle  = -5.613
+GPS Power = OFF
+Latest Fix UTC Time = "2024/09/27,06:02:27"
+Satellite Number = 08
+GPS Strength     = "42,42,40,40,39,39,37,37"
+Satellite ID     = "32,40,12,28,10,23,21,25"
+Longitude = 116.759995500
+Latitude   = 39.596087500
+Altitude   = 94.3
+RTC Time = "2024/09/27,06:09:20"
+
+[GPS00006]
+GPS Status = GPS Cycle On
+GPS Tick = 479
+UTC Time = "2024/09/27,06:09:51"
+
+[GPS00007]
+GPS Status = GPS Cycle Off
+GPS Tick = 60
+UTC Time = "2024/09/27,06:11:25"
+DAC Value = 2043
+ADC Sync Value = 2907, 130, 76416
+Phase Error = 13
+Max Phase Error = 13
+
+[Temperature00002]
+UTC Time = "2024/09/27,06:13:01"
+Temperature = 26.4375
+
+[GPS00008]
+GPS Status = GPS Synchronization
+UTC Time = "2024/09/27,06:17:01"
+Leap Second = 0
+eCompass North = 107.763
+Tilted Angle =   6.100
+Roll Angle   = 2.462
+Pitch Angle  = -5.577
+GPS Power = OFF
+Latest Fix UTC Time = "2024/09/27,06:11:25"
+Satellite Number = 08
+GPS Strength     = "48,45,44,42,42,42,41,41"
+Satellite ID     = "10,32,28,23,40,50,21,25"
+Longitude = 116.760461667
+Latitude   = 39.596237000
+Altitude   = 34.4
+RTC Time = "2024/09/27,06:17:32"
+
+[GPS00009]
+GPS Status = GPS Cycle On
+GPS Tick = 479
+UTC Time = "2024/09/27,06:19:25"
+
+[GPS00010]
+GPS Status = GPS Cycle Off
+GPS Tick = 46
+UTC Time = "2024/09/27,06:20:13"
+DAC Value = 2041
+ADC Sync Value = 2907, 158, 94743
+Phase Error = 6
+Max Phase Error = 13
+
+[Battery00001]
+UTC Time = "2024/09/27,06:22:37"
+Voltage = 8.1399
+
+[Temperature00003]
+UTC Time = "2024/09/27,06:23:25"
+Temperature = 26.5625
+
+[GPS00011]
+GPS Status = GPS Synchronization
+UTC Time = "2024/09/27,06:25:01"
+Leap Second = 0
+eCompass North = 107.396
+Tilted Angle =   6.174
+Roll Angle   = 2.421
+Pitch Angle  = -5.676
+GPS Power = OFF
+Latest Fix UTC Time = "2024/09/27,06:20:11"
+Satellite Number = 08
+GPS Strength     = "46,45,45,43,42,40,40,40"
+Satellite ID     = "32,10,28,25,40,21,23,50"
+Longitude = 116.760425000
+Latitude   = 39.596228500
+Altitude   = 17.0
+RTC Time = "2024/09/27,06:25:42"
+
+[GPS00012]
+GPS Status = GPS Cycle On
+GPS Tick = 479
+UTC Time = "2024/09/27,06:28:13"
+
+[GPS00013]
+GPS Status = GPS Cycle Off
+GPS Tick = 60
+UTC Time = "2024/09/27,06:29:01"
+DAC Value = 2044
+ADC Sync Value = 2907, 208, 120053
+Phase Error = 25
+Max Phase Error = 25
+
+[Temperature00004]
+UTC Time = "2024/09/27,06:33:01"
+Temperature = 26.6250
+
+[GPS00014]
+GPS Status = GPS Synchronization
+UTC Time = "2024/09/27,06:33:49"
+Leap Second = 18
+eCompass North = 107.517
+Tilted Angle =   6.342
+Roll Angle   = 2.351
+Pitch Angle  = -5.887
+GPS Power = OFF
+Latest Fix UTC Time = "2024/09/27,06:29:11"
+Satellite Number = 09
+GPS Strength     = "46,46,46,42,41,41,40,39,38"
+Satellite ID     = "10,23,28,25,31,40,50,32,21"
+Longitude = 116.760440167
+Latitude   = 39.596247500
+Altitude   = 22.3
+RTC Time = "2024/09/27,06:33:54"
+
+[GPS00015]
+GPS Status = GPS Cycle On
+GPS Tick = 479
+UTC Time = "2024/09/27,06:37:01"
+
+[Memory00001]
+UTC Time = "2024/09/27,06:37:49"
+Total Memory     = 120983
+Available Memory = 120820
+Used Memory      = 163
+
+[GPS00016]
+GPS Status = GPS Cycle Off
+GPS Tick = 76
+UTC Time = "2024/09/27,06:37:49"
+DAC Value = 2041
+ADC Sync Value = 2907, 274, 152471
+Phase Error = 22
+Max Phase Error = 25
+
+[DeviceInfo00004]
+BootReason = 0087
+Firmware Version = V1.1.2.0be
+Serial Number = 453026412
+BootLoader Version = V1.0.1.8
+Script Name = HR 3C 5Hz Standard Script
+Project Name = IGU-16HR 3C 5Hz
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/04/04"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 400
+Channel 1 Gain = 18
+Channel 2 Gain = 18
+Channel 3 Gain = 18
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+Ch1 Resistance = 1.8092, 1.6462
+Ch1 Resonate Freq = 5.0084
+Ch1 Damping = 0.7219
+Ch1 Sensitivity = 77.3099
+Ch1 RMS Noise = 1.1842
+Ch1 Spread Noise = 239.5892
+
+Ch2 Resistance = 1.7848, 1.7447
+Ch2 Resonate Freq = 4.1068
+Ch2 Damping = 0.4653
+Ch2 Sensitivity = 64.5592
+Ch2 RMS Noise = 1.1548
+Ch2 Spread Noise = 460.3099
+
+Ch3 Resistance = 1.7831, 1.7981
+Ch3 Resonate Freq = 4.9869
+Ch3 Damping = 0.6735
+Ch3 Sensitivity = 76.3479
+Ch3 RMS Noise = 1.1949
+Ch3 Spread Noise = 587.4147
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "21XL8"
+SD Production Revision = 16
+SD Production SN = 896998696
+SD Manufacture Date = 0x0187
+
+
+[BatteryPowerOnStop]
+
+[DeviceInfo00005]
+BootReason = 0087
+Firmware Version = V1.1.2.0be
+Serial Number = 453026412
+BootLoader Version = V1.0.1.8
+Script Name = HR 3C 5Hz Standard Script
+Project Name = IGU-16HR 3C 5Hz
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/04/04"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 400
+Channel 1 Gain = 18
+Channel 2 Gain = 18
+Channel 3 Gain = 18
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 11
+Remove Idle Tone = 2
+Voltage Threshold = 650,600
+
+Ch1 Resistance = 1.7949, 1.8013
+Ch1 Resonate Freq = 141.9754
+Ch1 Damping = 0.1572
+Ch1 Sensitivity = 143.9542
+Ch1 RMS Noise = 1.1622
+Ch1 Spread Noise = 567.1919
+
+Ch2 Resistance = 1.7715, 1.7750
+Ch2 Resonate Freq = 129.1490
+Ch2 Damping = 0.2280
+Ch2 Sensitivity = 159.2014
+Ch2 RMS Noise = 1.1644
+Ch2 Spread Noise = 183.8618
+
+Ch3 Resistance = 1.7683, 1.7887
+Ch3 Resonate Freq = 4.2651
+Ch3 Damping = 0.4981
+Ch3 Sensitivity = 66.1901
+Ch3 RMS Noise = 1.1983
+Ch3 Spread Noise = 597.8519
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "21XL8"
+SD Production Revision = 16
+SD Production SN = 896998696
+SD Manufacture Date = 0x0187
+
+
+[BatteryPowerOnStop]

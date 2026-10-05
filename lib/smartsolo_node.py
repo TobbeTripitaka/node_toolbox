@@ -134,7 +134,8 @@ def script_limits(script: pd.Series) -> dict:
         "battery_critical_v": _div(g("Battery_Critical"), 100),
         "battery_full_v": _div(g("Full_Battery_Indicator_Voltage"), 100),
         "gps_relock_warning_s": g("GPS_Relock_Timeout_Warning"),
-        "sample_rate_hz": g("Sample_Rate"),
+        "sample_interval_ms": _div(g("Sample_Rate"), 100),        # stored in 10 µs units
+        "sample_rate_hz": (1e5 / g("Sample_Rate")) if g("Sample_Rate") else None,
         "gains_db": [g(f"Channel_{i}_Gain") for i in (1, 2, 3)],
     }
     return lim
@@ -421,14 +422,16 @@ def _paz_response(zeros, poles, sensitivity_hf, fn):
     return resp
 
 
-def auspass_response(normalization_frequency: float = 15.0):
+def auspass_response(normalization_frequency: float = 15.0, gain_db: float = 0.0):
     """
     The AusPass/ANSIR IGU-16HR 3C response (velocity -> counts), for data
     exported in counts with the preamp gain removed and the polarity
-    inverted (x -1) - see ``AUSPASS_16HR3C``.
+    inverted (x -1) - see ``AUSPASS_16HR3C``. ``gain_db`` adds the preamp
+    gain for data where it was *not* removed (raw DLD).
     """
     p = AUSPASS_16HR3C
-    return _paz_response(p["zeros"], p["poles"], p["sensitivity"], normalization_frequency)
+    return _paz_response(p["zeros"], p["poles"], p["sensitivity"] * 10 ** (gain_db / 20.0),
+                         normalization_frequency)
 
 
 def magnetic_declination(lat, lon, time, elevation_m: float = 0.0) -> float:

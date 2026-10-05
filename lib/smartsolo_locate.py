@@ -120,6 +120,11 @@ def find_logs(root, pattern: str = "*", check_content: bool = True) -> list[Path
 # --------------------------------------------------------------------------- #
 # Stable fix and deployments
 # --------------------------------------------------------------------------- #
+def _nanmed(a):
+    a = np.asarray(a, float)
+    return float(np.nanmedian(a)) if np.isfinite(a).any() else np.nan
+
+
 def first_stable_fix(fixes: pd.DataFrame, n_stable: int = 5, stable_tol_m: float = 10.0):
     """
     First run of ``n_stable`` consecutive fixes all within ``stable_tol_m`` of
@@ -133,12 +138,13 @@ def first_stable_fix(fixes: pd.DataFrame, n_stable: int = 5, stable_tol_m: float
     fx = fixes.dropna(subset=["latitude", "longitude"])
     if fx.empty:
         return None
-    lat = fx["latitude"].to_numpy()
-    lon = fx["longitude"].to_numpy()
-    alt = fx["altitude"].to_numpy() if "altitude" in fx else np.full(len(fx), np.nan)
+    lat = pd.to_numeric(fx["latitude"], errors="coerce").to_numpy(float)
+    lon = pd.to_numeric(fx["longitude"], errors="coerce").to_numpy(float)
+    alt = (pd.to_numeric(fx["altitude"], errors="coerce").to_numpy(float) if "altitude" in fx
+           else np.full(len(fx), np.nan))
 
     if len(fx) < n_stable:
-        return (float(np.median(lat)), float(np.median(lon)), float(np.nanmedian(alt)),
+        return (float(np.median(lat)), float(np.median(lon)), _nanmed(alt),
                 fx.index[0], 0)
 
     for i in range(len(fx) - n_stable + 1):
@@ -146,7 +152,7 @@ def first_stable_fix(fixes: pd.DataFrame, n_stable: int = 5, stable_tol_m: float
         mla, mlo = np.median(la), np.median(lo)
         x, y = _local_xy(la, lo, mla, mlo)
         if np.all(np.hypot(x, y) <= stable_tol_m):
-            return (float(mla), float(mlo), float(np.nanmedian(alt[i:i + n_stable])),
+            return (float(mla), float(mlo), _nanmed(alt[i:i + n_stable]),
                     fx.index[i], i)
     return None
 
@@ -204,7 +210,8 @@ def _deployments_from_log(df: pd.DataFrame, info: pd.DataFrame | None,
                      & (info["file"] == row["log_file"])]
             if len(m):
                 m = m.iloc[0]
-                for col in ["boot_reason", "device_type", "firmware_version", "sample_rate"]:
+                for col in ["boot_reason", "device_type", "firmware_version", "sample_rate",
+                            "sample_rate_hz", "channel_1_gain", "channel_2_gain", "channel_3_gain"]:
                     if col in m:
                         row[col] = m[col]
                 # boot-time geophone test of this power-up
@@ -450,3 +457,105 @@ def export_stations(deps, path):
     ``.parquet``. Durations are written in hours.
     """
     return _write_table(deps, path)
+
+
+# --------------------------------------------------------------------------- #
+# Deployments straight from DLD data files (no log needed)
+# --------------------------------------------------------------------------- #
+def _device_from_serial(serial: str) -> str:
+    """Best guess of the node type from the serial (4530... IGU-16HR, 5900... BD3C-5)."""
+    s = str(serial)
+    if s.startswith("4530"):
+        return "IGU-16HR 3C (from serial)"
+    if s.startswith("5900"):
+        return "BD3C-5 (from serial)"
+    return ""
+
+
+def build_deployments_from_dld(dld, n_stable: int = 5, stable_tol_m: float = 10.0,
+                               tag_marks: str = "block_start"):
+    """
+    Deployments from raw DLD files alone - useful when the logs are missing.
+
+    Every DLD file has the node serial in its header and a GPS position in
+    each per-1000-sample time tag. Files are grouped by serial and file
+    number (``seis000X/Y/Z`` = one recording, one per power-up); the location
+    is the first stable position among the tags, as for logs.
+
+    ``dld`` may be a folder, glob, file or list. Returns the same columns as
+    :func:`build_deployments` (``session`` = DLD file number, ``source`` =
+    "dld").
+    """
+    import geopandas as gpd
+
+    import smartsolo_dld as dl
+
+    if isinstance(dld, (str, os.PathLike)) and Path(dld).is_dir():
+        files = sorted(p for p in Path(dld).rglob("*") if p.suffix.lower() == ".dld")
+    else:
+        files = [Path(p) for p in sl._expand_paths(dld)]
+    groups: dict = {}
+    for f in files:
+        if not dl.is_dld(f):
+            continue
+        h = dl.read_dld_header(f)
+        groups.setdefault((h["serial"], h["file_index"], h["start"]), []).append((f, h))
+    rows = []
+    for (serial, idx, _), items in sorted(groups.items(), key=lambda kv: (kv[0][0], str(kv[0][2]))):
+        f, h = sorted(items, key=lambda x: x[1]["component"] != "Z")[0]
+        tags = dl.read_dld_tags(f).set_index("time")
+        segs = dl.scan_dld(f, tag_marks=tag_marks)
+        stable = first_stable_fix(tags[["latitude", "longitude"]], n_stable, stable_tol_m)
+        row = dict(serial=serial, session=idx if idx is not None else -1, log_file="",
+                   start=min(s["starttime"] for s in segs), end=max(s["endtime"] for s in segs),
+                   n_records=len(tags), n_fixes=len(tags), latitude=np.nan, longitude=np.nan,
+                   elevation=float(h["altitude"]), fix_time=pd.NaT,
+                   unstable_fixes_skipped=np.nan, median_offset_m=np.nan, max_offset_m=np.nan,
+                   drift_m=np.nan, drift_m_per_day=np.nan, firmware_version=h["firmware"],
+                   device_type=_device_from_serial(serial), sample_rate_hz=segs[0]["sampling_rate"],
+                   source="dld", dld_files=";".join(sorted(str(p) for p, _ in items)))
+        if stable is not None:
+            lat0, lon0, _, t0, i0 = stable
+            after = tags.iloc[i0:]
+            x, y = _local_xy(after["latitude"], after["longitude"], lat0, lon0)
+            r = np.hypot(x, y)
+            row.update(latitude=lat0, longitude=lon0, fix_time=t0, unstable_fixes_skipped=i0,
+                       median_offset_m=float(np.median(r)), max_offset_m=float(np.max(r)))
+        rows.append(row)
+    deps = pd.DataFrame(rows)
+    if deps.empty:
+        return gpd.GeoDataFrame(deps, geometry=[], crs=WGS84)
+    deps["duration"] = deps["end"] - deps["start"]
+    deps.insert(0, "deployment_id", deps["serial"].astype(str) + "_dld" + deps["session"].astype(int).astype(str).str.zfill(3))
+    return gpd.GeoDataFrame(deps, geometry=gpd.points_from_xy(deps["longitude"], deps["latitude"]), crs=WGS84)
+
+
+def combine_deployments(log_deps, dld_deps, extend: bool = True):
+    """
+    Merge log-based and DLD-based deployment tables. A DLD deployment that
+    overlaps a log deployment of the same serial is dropped (the log one has
+    the better metadata); with ``extend=True`` the log deployment's start/end
+    are widened to cover the data (the log's first record is often ~1 min
+    after recording started). DLD deployments of nodes without logs are kept.
+    """
+    import geopandas as gpd
+
+    log_deps = log_deps.copy()
+    if "source" not in log_deps:
+        log_deps["source"] = "log"
+    keep = []
+    for _, d in dld_deps.iterrows():
+        m = log_deps[(log_deps["serial"].astype(str) == str(d["serial"]))
+                     & (log_deps["start"] <= d["end"]) & (log_deps["end"] >= d["start"])]
+        if len(m):
+            if extend:
+                i = m.index[0]
+                log_deps.loc[i, "start"] = min(log_deps.loc[i, "start"], d["start"])
+                log_deps.loc[i, "end"] = max(log_deps.loc[i, "end"], d["end"])
+                log_deps.loc[i, "duration"] = log_deps.loc[i, "end"] - log_deps.loc[i, "start"]
+                if "dld_files" in d:
+                    log_deps.loc[i, "dld_files"] = d["dld_files"]
+        else:
+            keep.append(d)
+    out = pd.concat([log_deps, pd.DataFrame(keep)], ignore_index=True) if keep else log_deps
+    return gpd.GeoDataFrame(out, geometry="geometry", crs=WGS84).sort_values(["serial", "start"]).reset_index(drop=True)
