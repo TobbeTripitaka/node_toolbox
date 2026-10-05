@@ -1,5 +1,7 @@
 # SmartSolo DLD file format (reverse-engineered)
 
+---
+
 Notes from IGU-16HR 3C files written by firmware V1.0.5.6kp, V1.0.8.1be and
 V1.1.2.0be at 250, 500 and 1000 samples/s. See also [FINDINGS.md](FINDINGS.md).
 
