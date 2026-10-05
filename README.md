@@ -1,5 +1,5 @@
 # node_toolbox
-Tools to work with SmartSolo node type instruments.
+Tools to work with SmartSolo node type instruments. Especially in Antarctic settings where logistical limitations constrain the deployment.
 
 ## SmartSolo log reader
 
@@ -35,7 +35,7 @@ cd node_toolbox
 pip install -r requirements.txt
 ```
 
-No packaging needed – just put `lib/` on the Python path:
+No packaging needed (might do later),  just put `lib/` on the Python path:
 
 ```python
 import sys
