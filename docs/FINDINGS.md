@@ -151,13 +151,13 @@ data keep that layout).
   block (1, 2 or 4 s). One SoloLite export of the same file settles it
   (`smartsolo_dld.compare_with_export`).
 
-## Removed sample files (for reference)
+## Sample files seen (most now removed)
 
 | serial | site | data | key facts |
 |---|---|---|---|
-| 453021267, 453022522 | DML, Antarctica (−71.55, 11.12) | logs, 2 weeks (kept) | 1000 sps, 0 dB, −14…+8 °C |
+| 453021267, 453022522 | DML, Antarctica (−71.55, 11.12) | logs, 2 weeks (**kept**, `data/nodes/`) | 1000 sps, 0 dB, −17…+8 °C |
 | 453022317 | DML | `seis001?.DLD`, 3 min | 1000 sps, header altitude 1642 m |
 | 453027665 | near Casey (−66.28, 110.53) | `seis006?.DLD`, 72 s | 1000 sps |
 | break-test nodes | Hobart, 6–7 Apr 2023 | `seis001?.DLD`, 4 h (removed) | label jumps, see DLD timing |
-| 453038428, 453038431 | Beijing test (39.596, 116.760) | logs (kept) + `seis000?.DLD` | 250 sps, 18 dB, side by side, 4 s apart |
-| 45304xxxx, 4530261xx | short tests (kept logs) | logs only | V1.1.4 GNSS logs, 500 sps, 36 dB |
+| 453038428, 453038431 | Beijing test (39.596, 116.760) | logs + `seis000?.DLD` (removed) | 250 sps, 18 dB, side by side, 4 s apart |
+| 4530462xx, 4530261xx | short tests | logs only (removed; one V1.1.4 log kept as `tests/fixtures/DigiSolo_V1.1.4_GNSS.LOG`) | V1.1.2/V1.1.4, GNSS records, 500 sps, 36 dB |

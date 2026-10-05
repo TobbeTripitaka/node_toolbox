@@ -46,7 +46,9 @@ def moved_log(tmp_path):
 
 
 def test_sample_counts_match_header():
-    for f in sorted(NODES.rglob("DigiSolo.LOG")):
+    files = (sorted(NODES.rglob("DigiSolo.LOG")) + sorted((ROOT / "data" / "break_test").rglob("DigiSolo.LOG"))
+             + [ROOT / "tests" / "fixtures" / "DigiSolo_V1.1.4_GNSS.LOG"])
+    for f in files:
         df = sl.read_log(f)
         hdr, parsed = df.attrs["header_counts"], df.attrs["parsed_counts"]
         for k in ["GPS", "Temperature", "Memory", "Battery", "DeviceInfo"]:   # GNSS counted as GPS

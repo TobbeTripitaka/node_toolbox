@@ -45,10 +45,9 @@ scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
 data/break_test/                      6 nodes, raw DLD + logs + pulse tests (Git LFS):
                                       a Land Cruiser HJ60 braking (see data/break_test/README.md)
-data/nodes/<serial>/                  example logs (no waveform data):
+data/nodes/<serial>/                  example logs, no waveform data (see data/nodes/README.md):
   453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
-  453038428, 453038431                  side-by-side test, 250 sps, 18 dB
-  4530261xx, 4530462xx                  short tests (firmware V1.1.2 / V1.1.4, GNSS records)
+tests/fixtures/                       a V1.1.4 log with GNSS records (parser test)
 docs/FINDINGS.md                      everything learned from the files, with numbers
 ```
 
