@@ -1,5 +1,5 @@
 # node_toolbox
-Tools to work with SmartSolo node type instruments. Especially in Antarctic settings where logistical limitations constrain the deployment.
+Tools to work with SmartSolo node type geophones. Especially in Antarctic settings where logistical limitations constrain the deployment.
 
 - **`smartsolo_log`** – read `DigiSolo.LOG` state-of-health logs into pandas (temperature, voltage, GPS, tilt ... against time).
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
@@ -149,9 +149,9 @@ Parsing rules: field names are converted to snake_case; values like
 `"2024/12/25,14:20:04"` become UTC datetimes, numbers become floats, number
 pairs such as `2907,39` are split into `<name>_1` and `<name>_2`, IDs/codes
 (serial number, boot reason, firmware) stay as text. Fields not listed above are
-still parsed – any new `key = value` appears as a column automatically.
+still parsed; any new `key = value` appears as a column automatically.
 
-`df.attrs["header_counts"]` holds the counters from the first line of the file
+`df.attrs["header_counts"]` holds teh counters from the first line of the file
 (`<DeviceInfo,GPS,Temperature,Memory,Battery,Error,Notify>`) and
 `df.attrs["parsed_counts"]` what was actually parsed, as a sanity check. (The
 Notify counter in the header does not match the number of Notify blocks in the
@@ -305,7 +305,7 @@ sel, st, inv = wf.extract_region(
 
 The repository has real logs but no real waveforms. Make synthetic ones that
 match the logs (MiniSEED for 453021267, SEG-Y for 453022522, blank header
-codes, a few "icequakes"):
+codes, a few icequakes):
 
 ```bash
 python scripts/make_synthetic_waveforms.py      # -> data/seismic_traces/
@@ -321,12 +321,12 @@ maps the nodes on aerial imagery, detects the vehicle events, estimates speeds f
 the travel time between the node pairs, picks the ten most likely brake
 stops, shows spectrograms with Doppler-gliding engine tones, stacks and
 spectra, particle motion, an engine-rpm estimate, an (unsuccessful) search
-for the baby's laughter, and an audio version of the strongest stop.
+for Kaja laughing, and an audio version of the strongest stop.
 
 ## Raw DLD files
 
 The nodes store data as `seisNNN{X,Y,Z}.DLD` (`MiniSeed_Output_Mode = 0`).
-`lib/smartsolo_dld.py` reads them directly – no SoloLite export – and the
+`lib/smartsolo_dld.py` reads them directly, no SoloLite export, and the
 rest of the toolbox treats them like any other waveform file. The format
 (reverse-engineered, see [docs/DLD_FORMAT.md](docs/DLD_FORMAT.md)): a
 512-byte header (serial, firmware, start/end, position), then blocks of 1000
@@ -405,7 +405,7 @@ node["pulse"]    # per axis: f0, damping, noise floor (µV), step plateaus (mV)
 node["qc"]       # per boot and channel: logged test values, pass/fail vs limits, 'noisy' flag
 ```
 
-What the files tell us (sample node 453022522):
+What the files can tell us (sample node 453022522):
 
 - **Pulse WAVs are 1000 sps, not the 10 000 Hz in the WAV header.** The file
   is the 16-s geophone/ADC test stage (SmartSolo manual) in 16 000 samples;
@@ -519,7 +519,7 @@ so.rotate_to_ne(st, north_azimuth=127.2)  # or rotate the data to geographic N/E
   default flip would double it - use `invert_polarity=False`).
 - Meaning of `eCompass North` (magnetic azimuth of the N arrow?) and whether
   the compass was calibrated.
-- SEG-Y exports have one component per trace with the start time in the
+- SEG-Y exports have one component per trace with the start time in teh
   trace headers; how SoloLite labels components in SEG-Y may need `component_func=lambda path, trace: ...`
   (in both `index_waveforms` and `extract_waveforms`).
 
