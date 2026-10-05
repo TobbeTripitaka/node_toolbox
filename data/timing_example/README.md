@@ -1,5 +1,7 @@
 # Timing example: the 2-s jump in the DLD time labels
 
+Here is abn example. 
+
 Two 3-minute excerpts of raw `seis001Z.DLD` files from the same deployment
 (nodes 453009194 and 453010047, 7 April 2023, 00:57:07–01:00:07 UTC, 500 sps,
 firmware V1.0.5.6kp, 21 m apart). Each file is the original 512-byte header
