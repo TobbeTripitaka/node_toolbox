@@ -1,4 +1,10 @@
-"""Run with:  pytest -q tests"""
+"""
+Run with:  pytest -q tests
+
+
+Stolen by Tobias Stål 2025
+"""
+
 
 import sys
 from pathlib import Path
