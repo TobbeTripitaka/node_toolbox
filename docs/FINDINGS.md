@@ -57,7 +57,7 @@ data keep that layout).
 - DML (2 weeks on ice): drift 2.6–3.1 m, ~0.2 m/day, within GPS noise.
 - The 72-byte DLD tags carry a GPS position every 1000 samples, so nodes
   without a log can be located – and **handling shows up**: on 31 March 2023
-  four break-test nodes were carried 70–190 m while still recording.
+  five break-test nodes were carried 70–230 m while still recording.
 - The DLD *header* position is written when the file is closed, so it is
   the position at the end (after any move), not at installation.
 
@@ -71,7 +71,7 @@ data keep that layout).
   36° off the settled heading) – use the settled heading.
 - Whether `eCompass North` is the magnetic azimuth of the N arrow is not
   documented. IGRF declination is −29.5° in DML. The two DML nodes would
-  point ~127° and ~97° true; the five break-test nodes read 96–162° (and 31–152° on a later power-up), so the
+  point ~127° and ~97° true; the six break-test nodes read 96–162° (and 31–152° on a later power-up), so the
   nodes were not aligned to north (or the compass wasn't calibrated).
 - Tilt beyond spec: 453022522 (DML) 5.1° (> 3° horizontal-geophone spec);
   453010167 (break test, 31 Mar) 11.3° (> 10° vertical spec).
@@ -129,7 +129,7 @@ data keep that layout).
   until the GPS receiver has learned the leap seconds, then jumps back 2 s
   (header field 0x104 = 0 before, 18 after). Seen in a later 4-hour
   recording of four break-test nodes (removed; jumps at 23:56, 00:21, 00:58
-  and 02:38 UTC), in the V1.1.2 side-by-side test files and in all five
+  and 02:38 UTC), in the V1.1.2 side-by-side test files and in all six
   31 March break-test files (label 2 s late throughout, leap field 0).
 - The tag's **GPS time of week (TOW)** is continuous. UTC = GPS week + TOW
   − 1 s − (GPS−UTC) agrees exactly with the text time once the leap seconds

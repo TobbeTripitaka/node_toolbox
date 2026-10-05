@@ -192,7 +192,7 @@ def test_dld_header_tags_and_samples():
 def test_dld_labels_late_while_leap_seconds_unknown():
     """Header leap_seconds = 0 -> text labels are 2 s ahead of TOW-derived UTC in every tag."""
     import smartsolo_dld as dl
-    for s in ("453004362", "453009194", "453010047", "453010077", "453010167"):
+    for s in ("453004362", "453009194", "453010029", "453010047", "453010077", "453010167"):
         f = _dld(s, "seis000Z")
         assert dl.read_dld_header(f)["leap_seconds"] == 0
         assert (dl.read_dld_tags(f)["label_minus_tow_s"] == 2).all()

@@ -43,7 +43,7 @@ notebooks/dld_demo.ipynb              raw DLD files -> MiniSEED / SEG-Y / Statio
 notebooks/break_test.ipynb            the Land Cruiser break test: map, events, speeds, spectra, fun
 scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
-data/break_test/                      5 nodes, raw DLD + logs + pulse tests (Git LFS):
+data/break_test/                      6 nodes, raw DLD + logs + pulse tests (Git LFS):
                                       a Land Cruiser HJ60 braking (see data/break_test/README.md)
 data/nodes/<serial>/                  example logs (no waveform data):
   453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
@@ -57,7 +57,7 @@ docs/FINDINGS.md                      everything learned from the files, with nu
 ```bash
 git clone https://github.com/TobbeTripitaka/node_toolbox.git
 cd node_toolbox
-git lfs install && git lfs pull      # raw DLD sample data (~40 MB, Git LFS)
+git lfs install && git lfs pull      # raw DLD sample data (~45 MB, Git LFS)
 pip install -r requirements.txt
 ```
 
@@ -313,7 +313,7 @@ pytest -q tests
 
 ## Break test
 
-`data/break_test/` holds five nodes recording **a Toyota Land Cruiser HJ60
+`data/break_test/` holds six nodes recording **a Toyota Land Cruiser HJ60
 braking, with a laughing baby in the back seat** (road beside the sports
 oval in Sandy Bay, Hobart, 31 March 2023, 500 sps). `notebooks/break_test.ipynb`
 maps the nodes on aerial imagery, detects the vehicle events, estimates speeds from
