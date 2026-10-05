@@ -88,6 +88,7 @@ __all__ = [
 ]
 
 DLD_MAGIC = b"DTCCSZ-TEC-FTS"
+LFS_POINTER = b"version https://git-lfs"
 
 # Package-wide defaults (can be changed: smartsolo_dld.DEFAULTS["time_source"] = "label")
 DEFAULTS = {"time_source": "tow", "tag_marks": "block_start"}
@@ -154,6 +155,9 @@ def read_dld_header(path) -> dict:
     with open(path, "rb") as fh:
         h = fh.read(HEADER_SIZE)
     if not h.startswith(DLD_MAGIC):
+        if h.startswith(LFS_POINTER):
+            raise ValueError(f"{path} is a Git LFS pointer, not the DLD data: install Git LFS and run "
+                             "'git lfs install && git lfs pull' in the repository")
         raise ValueError(f"{path} is not a SmartSolo DLD file")
     t0, t1 = struct.unpack_from("<qq", h, 0xD0)
     lon, lat = struct.unpack_from("<dd", h, 0x190)

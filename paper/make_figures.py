@@ -336,7 +336,23 @@ def fig6_timing():
 
 FIGS = {1: fig1_workflow, 2: fig2_dld, 3: fig3_soh, 4: fig4_location, 5: fig5_pulse, 6: fig6_timing}
 
+NEEDS_DLD = {2, 6}          # figures that read raw DLD files (stored with Git LFS)
+
+
+def dld_available():
+    files = list(BT.rglob("*.DLD")) + list((ROOT / "data/timing_example").glob("*.DLD"))
+    return bool(files) and all(f.read_bytes()[:len(dld.DLD_MAGIC)] == dld.DLD_MAGIC for f in files)
+
+
 if __name__ == "__main__":
     which = [int(a) for a in sys.argv[1:]] or list(FIGS)
+    have_dld = dld_available()
+    if not have_dld and NEEDS_DLD & set(which):
+        print("The raw DLD files are Git LFS pointers (not downloaded). Run\n"
+              "    git lfs install && git lfs pull\n"
+              "in the repository (install Git LFS first, e.g. 'brew install git-lfs').\n"
+              f"Skipping figures {sorted(NEEDS_DLD & set(which))}.")
     for k in which:
+        if k in NEEDS_DLD and not have_dld:
+            continue
         FIGS[k]()
