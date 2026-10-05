@@ -33,7 +33,7 @@ OUT = HERE / "figures"
 OUT.mkdir(exist_ok=True)
 DML = [ROOT / "data/nodes/453021267", ROOT / "data/nodes/453022522"]
 BT = ROOT / "data/break_test"
-SERIALS = sorted(p.name for p in BT.iterdir() if p.is_dir())
+SERIALS = sorted(p.name for p in BT.iterdir() if p.is_dir() and not p.name.startswith("."))
 COL = dict(zip(SERIALS, ["C4", "C0", "C5", "C1", "C2", "C3"]))
 DCOL = {"453021267": "C0", "453022522": "C3"}
 W2, W1 = 7.09, 3.39            # page width (18 cm) and column width (8.6 cm), inches
@@ -269,7 +269,7 @@ def fig5_pulse():
     label(axz, "b")
     # pulse vs logged boot test, all nodes
     rows = []
-    folders = [folder] + [next((BT / s).iterdir()) for s in SERIALS]
+    folders = [folder] + [sn.find_node_folders(BT / s)[0] for s in SERIALS]
     for fo in folders:
         node = sn.read_node_folder(fo)
         info = sl.read_device_info(fo / "DigiSolo.LOG")
