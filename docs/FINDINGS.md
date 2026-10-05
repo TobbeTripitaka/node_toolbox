@@ -2,7 +2,8 @@
 
 A record of everything found while building this toolbox, including results
 from sample files that are no longer in the repository (raw DLD files from
-Dronning Maud Land, Casey and a two-node side-by-side test). Numbers are
+Dronning Maud Land, Casey, a two-node side-by-side test, and a longer later
+recording of the break-test nodes). Numbers are
 given so they can be checked against new data.
 
 Nodes: DTCC SmartSolo IGU-16HR 3C 5 Hz, firmware V1.0.5.6kp, V1.0.8.1be,
@@ -56,7 +57,7 @@ data keep that layout).
 - DML (2 weeks on ice): drift 2.6–3.1 m, ~0.2 m/day, within GPS noise.
 - The 72-byte DLD tags carry a GPS position every 1000 samples, so nodes
   without a log can be located – and **handling shows up**: on 31 March 2023
-  three break-test nodes were carried 70–180 m while still recording.
+  four break-test nodes were carried 70–190 m while still recording.
 - The DLD *header* position is written when the file is closed, so it is
   the position at the end (after any move), not at installation.
 
@@ -70,7 +71,7 @@ data keep that layout).
   36° off the settled heading) – use the settled heading.
 - Whether `eCompass North` is the magnetic azimuth of the N arrow is not
   documented. IGRF declination is −29.5° in DML. The two DML nodes would
-  point ~127° and ~97° true; the four break-test nodes read 31–162°, so the
+  point ~127° and ~97° true; the five break-test nodes read 96–162° (and 31–152° on a later power-up), so the
   nodes were not aligned to north (or the compass wasn't calibrated).
 - Tilt beyond spec: 453022522 (DML) 5.1° (> 3° horizontal-geophone spec);
   453010167 (break test, 31 Mar) 11.3° (> 10° vertical spec).
@@ -99,9 +100,9 @@ data keep that layout).
 - Sequence: ~1.9 s clipped pre-test, current steps (+, off, −, off, +, off,
   ~1 s each), ~6 s quiet.
 - Damped-oscillator fits after the switch-offs: f0 4.95–5.11 Hz,
-  h 0.67–0.72, within ~2 % of the logged boot test. The positive-current
+  h 0.67–0.73, within ~2 % of the logged boot test. The positive-current
   switch-off gives ~5.35 Hz (suspension non-linearity at larger drive).
-- Quiet part: 3.9–4.0 counts RMS = 1.15–1.19 µV, the log's `RMS Noise`,
+- Quiet part: 3.9–4.2 counts RMS = 1.15–1.25 µV, the log's `RMS Noise`,
   which confirms 3355.4428 counts/mV.
 
 ## Polarity, codes and response
@@ -126,17 +127,20 @@ data keep that layout).
   1000 sps files). See [DLD_FORMAT.md](DLD_FORMAT.md).
 - The tag's **text time is unreliable at the 2-s level**: it is 2 s late
   until the GPS receiver has learned the leap seconds, then jumps back 2 s
-  (header field 0x104 = 0 before, 18 after). Seen in all four break-test
-  nodes on 6–7 April (jumps at 23:56, 00:21, 00:58 and 02:38 UTC) and in
-  the V1.1.2 side-by-side test files (label 2 s late throughout).
+  (header field 0x104 = 0 before, 18 after). Seen in a later 4-hour
+  recording of four break-test nodes (removed; jumps at 23:56, 00:21, 00:58
+  and 02:38 UTC), in the V1.1.2 side-by-side test files and in all five
+  31 March break-test files (label 2 s late throughout, leap field 0).
 - The tag's **GPS time of week (TOW)** is continuous. UTC = GPS week + TOW
   − 1 s − (GPS−UTC) agrees exactly with the text time once the leap seconds
   are known (the −1 s: TOW is the time of the *next* pulse, as in u-blox
   TIM-TP). `smartsolo_dld` uses this by default (`time_source="tow"`).
-- Proof: cross-correlating ambient noise between nodes every 10 min, text
-  times give lags of exactly ±2 s whenever one node's labels have jumped
-  and the other's haven't; TOW times give 0 ± 4 ms throughout
-  (`notebooks/dld_demo.ipynb`, test `test_dld_nodes_align_only_with_tow_time`).
+- Proof (removed later recording): cross-correlating ambient noise between
+  nodes every 10 min, text times gave lags of exactly ±2 s whenever one
+  node's labels had jumped and the other's hadn't; TOW times gave 0 ± 4 ms
+  throughout. With the remaining data, `notebooks/dld_demo.ipynb` and the
+  tests check that neighbouring nodes (5 m and 12 m apart) align with TOW
+  times.
 - Two nodes 10 m apart started 4 s apart (Beijing test, 250 sps, removed
   sample files): lag 0 samples, cc 0.96 (X), 0.93 (Z) – blocks and tags
   decoded correctly.
@@ -154,5 +158,6 @@ data keep that layout).
 | 453021267, 453022522 | DML, Antarctica (−71.55, 11.12) | logs, 2 weeks (kept) | 1000 sps, 0 dB, −14…+8 °C |
 | 453022317 | DML | `seis001?.DLD`, 3 min | 1000 sps, header altitude 1642 m |
 | 453027665 | near Casey (−66.28, 110.53) | `seis006?.DLD`, 72 s | 1000 sps |
+| break-test nodes | Hobart, 6–7 Apr 2023 | `seis001?.DLD`, 4 h (removed) | label jumps, see DLD timing |
 | 453038428, 453038431 | Beijing test (39.596, 116.760) | logs (kept) + `seis000?.DLD` | 250 sps, 18 dB, side by side, 4 s apart |
 | 45304xxxx, 4530261xx | short tests (kept logs) | logs only | V1.1.4 GNSS logs, 500 sps, 36 dB |

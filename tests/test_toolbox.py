@@ -189,33 +189,28 @@ def test_dld_header_tags_and_samples():
     assert w.stats.npts == 5001 and np.array_equal(w.data, tr.slice(w.stats.starttime, w.stats.endtime).data)
 
 
-def test_dld_label_jump_and_tow_time():
-    """The text labels jump 2 s when the receiver learns the leap seconds; TOW doesn't."""
+def test_dld_labels_late_while_leap_seconds_unknown():
+    """Header leap_seconds = 0 -> text labels are 2 s ahead of TOW-derived UTC in every tag."""
     import smartsolo_dld as dl
-    f = _dld("453009194", "seis001Z")
-    assert len(dl.scan_dld(f, time_source="label")) == 2
-    assert len(dl.scan_dld(f, time_source="tow")) == 1
-    tags = dl.read_dld_tags(f)
-    assert set(tags["label_minus_tow_s"]) == {2.0, 0.0}
+    for s in ("453004362", "453009194", "453010047", "453010077", "453010167"):
+        f = _dld(s, "seis000Z")
+        assert dl.read_dld_header(f)["leap_seconds"] == 0
+        assert (dl.read_dld_tags(f)["label_minus_tow_s"] == 2).all()
+        assert len(dl.scan_dld(f, time_source="tow")) == 1
 
 
-def test_dld_nodes_align_only_with_tow_time():
-    """Nodes 453009194 (labels still +2 s at 01:30) and 453010047 (labels already
-    corrected) line up with TOW time but are 2 s apart with label time."""
+def test_dld_neighbouring_nodes_align_with_tow_time():
+    """453004362 stands 5 m from 453009194: ambient noise lines up at ~0 lag."""
     from obspy import UTCDateTime
     from obspy.signal.cross_correlation import correlate, xcorr_max
     import smartsolo_dld as dl
-    t0, t1 = UTCDateTime("2023-04-07T00:30:00"), UTCDateTime("2023-04-07T00:50:00")
-    lags = {}
-    for src in ("tow", "label"):
-        x, y = (dl.read_dld(_dld(s, "seis001Z"), starttime=t0, endtime=t1, time_source=src)[0]
-                for s in ("453009194", "453010047"))
-        for tr in (x, y):
-            tr.detrend("demean"); tr.filter("bandpass", freqmin=2, freqmax=40)
-        n = min(x.stats.npts, y.stats.npts)
-        lag, cc = xcorr_max(correlate(x.data[:n], y.data[:n], 1500), abs_max=False)
-        lags[src] = lag / 500
-    assert abs(lags["tow"]) < 0.05 and abs(lags["label"] - 2.0) < 0.05
+    t0, t1 = UTCDateTime("2023-03-31T01:35:00"), UTCDateTime("2023-03-31T01:35:30")
+    x, y = (dl.read_dld(_dld(s, "seis000Z"), starttime=t0, endtime=t1)[0] for s in ("453009194", "453004362"))
+    for tr in (x, y):
+        tr.detrend("demean"); tr.filter("bandpass", freqmin=2, freqmax=40)
+    n = min(x.stats.npts, y.stats.npts)
+    lag, cc = xcorr_max(correlate(x.data[:n], y.data[:n], 1500), abs_max=False)
+    assert abs(lag / 500) < 0.1 and cc > 0.3
 
 
 def test_dld_pipeline_mseed_and_segy(tmp_path):
