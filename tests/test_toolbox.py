@@ -120,3 +120,38 @@ def test_node_folder_and_pulse():
     qc = node["qc"]
     assert qc[qc.boot_no == 4]["ok_all"].all()
     assert qc[qc.boot_no == 3]["noisy"].all()
+
+
+def test_circular_and_orientation():
+    import smartsolo_orientation as so
+    assert so.circular_mean([359, 1]) == pytest.approx(0, abs=1e-9)
+    assert so.circular_diff(1, 359) == pytest.approx(2)
+    df = sl.read_logs(LOGS)
+    deps = loc.build_deployments(LOGS)
+    ot = so.orientation_table(df, deps, with_igrf=False).set_index("serial")
+    assert ot.loc["453022522", "tilt_over_horizontal_spec"]
+    assert abs(ot.loc["453021267", "heading_settled"] - 156.7) < 1
+
+
+def test_polarity_and_auspass_response(tmp_path):
+    pytest.importorskip("obspy")
+    import numpy as np
+    import smartsolo_node as sn
+    import smartsolo_waveforms as wf
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import make_synthetic_waveforms as mk
+
+    mk.main(str(tmp_path / "tr"), hours_mseed=1, minutes_segy=5)
+    idx = wf.index_waveforms(tmp_path / "tr")
+    sel = loc.select_deployments(loc.build_deployments(LOGS), start="2024-12-26T00:01", end="2024-12-26T00:02")
+    raw = wf.extract_waveforms(sel, idx, invert_polarity=False)
+    fl = wf.extract_waveforms(sel, idx)                       # auto: IGU-16HR -> x -1
+    assert np.array_equal(raw[0].data, -fl[0].data) and fl[0].stats.polarity_inverted
+    inv = wf.build_inventory(sel, response="auspass")
+    z = [c for c in inv[0][0].channels if c.code.endswith("Z")][0]
+    assert z.dip == -90
+    inv_raw = wf.build_inventory(sel, polarity_inverted=False)
+    assert [c for c in inv_raw[0][0].channels if c.code.endswith("Z")][0].dip == 90
+    r = sn.auspass_response()
+    hf = abs(r.get_evalresp_response_for_frequencies(np.array([200.0]), output="VEL")[0])
+    assert hf == pytest.approx(257019225.55, rel=1e-4)

@@ -74,6 +74,15 @@ NOMINAL_5HZ = dict(f0=5.0, damping=0.70, damping_open=0.60, sensitivity=80.0,
                    coil_resistance=1850.0)
 
 
+# AusPass / ANSIR published response for IGU-16HR 3C (counts, data already
+# multiplied by -1; same for all channels and units, sample-rate independent):
+# https://auspass.edu.au/xwiki/bin/view/Instrumentation/SmartSolo%20Nodes/
+# Poles correspond to f0 = 5.000 Hz, h = 0.707; sensitivity / 3355.4428 counts/mV
+# = 76.6 V/(m/s).
+AUSPASS_16HR3C = dict(poles=[complex(-22.211059, 22.217768), complex(-22.211059, -22.217768)],
+                      zeros=[0j, 0j], sensitivity=257019225.55108312)
+
+
 def counts_per_volt(gain_db: float = 0.0) -> float:
     """ADC counts per volt at the given preamp gain (0, 6, ... 36 dB)."""
     return COUNTS_PER_MV_0DB * 1000.0 * 10 ** (float(gain_db) / 20.0)
@@ -381,22 +390,45 @@ def geophone_response(f0: float = 5.0, damping: float = 0.70, sensitivity: float
     ObsPy ``Response`` for a SmartSolo geophone channel: velocity (M/S) ->
     counts. Two zeros at 0 and the pole pair of a damped oscillator,
     ``-h·ω0 ± i·ω0·√(1-h²)``; sensor gain ``sensitivity`` V/(m/s) and
-    digitiser gain :func:`counts_per_volt` (``gain_db``). Anti-alias filter
-    not included.
+    digitiser gain :func:`counts_per_volt` (``gain_db``). ``sensitivity`` is
+    the flat, above-resonance value; the overall sensitivity reported at
+    ``normalization_frequency`` is slightly lower (≈0.6 % at 15 Hz).
+    Anti-alias filter not included.
     """
-    from obspy.core.inventory.response import Response
-
     w0 = 2 * np.pi * f0
     wd = w0 * np.sqrt(1 - damping ** 2)
     poles = [complex(-damping * w0, wd), complex(-damping * w0, -wd)]
     zeros = [0j, 0j]
-    gain = sensitivity * counts_per_volt(gain_db)
-    resp = Response.from_paz(zeros=zeros, poles=poles, stage_gain=gain,
-                             stage_gain_frequency=normalization_frequency,
-                             input_units="M/S", output_units="COUNTS",
-                             normalization_frequency=normalization_frequency)
-    resp.recalculate_overall_sensitivity(normalization_frequency)
+    return _paz_response(zeros, poles, sensitivity * counts_per_volt(gain_db),
+                         normalization_frequency)
+
+
+def _shape_at(f, zeros, poles):
+    """|H(f)| of the zeros/poles alone; -> 1 at high frequency for a geophone."""
+    s = 2j * np.pi * f
+    return float(abs(np.prod([s - z for z in zeros]) / np.prod([s - p for p in poles])))
+
+
+def _paz_response(zeros, poles, sensitivity_hf, fn):
+    """Response whose high-frequency (flat) gain is ``sensitivity_hf``."""
+    from obspy.core.inventory.response import Response
+
+    shape = _shape_at(fn, zeros, poles)
+    resp = Response.from_paz(zeros=zeros, poles=poles, stage_gain=sensitivity_hf * shape,
+                             stage_gain_frequency=fn, input_units="M/S", output_units="COUNTS",
+                             normalization_frequency=fn, normalization_factor=1.0 / shape)
+    resp.recalculate_overall_sensitivity(fn)
     return resp
+
+
+def auspass_response(normalization_frequency: float = 15.0):
+    """
+    The AusPass/ANSIR IGU-16HR 3C response (velocity -> counts), for data
+    exported in counts with the preamp gain removed and the polarity
+    inverted (x -1) - see ``AUSPASS_16HR3C``.
+    """
+    p = AUSPASS_16HR3C
+    return _paz_response(p["zeros"], p["poles"], p["sensitivity"], normalization_frequency)
 
 
 def magnetic_declination(lat, lon, time, elevation_m: float = 0.0) -> float:

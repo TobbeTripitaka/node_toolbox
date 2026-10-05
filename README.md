@@ -4,6 +4,7 @@ Tools to work with SmartSolo node type instruments. Especially in Antarctic sett
 - **`smartsolo_log`** – read `DigiSolo.LOG` state-of-health logs into pandas (temperature, voltage, GPS, tilt ... against time).
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
 - **`smartsolo_node`** – read the other files in a node folder (script, `device.ini`, `PULSE_*.WAV`): test limits, geophone pulse-test analysis, boot-by-boot sensor QC, orientation, instrument response.
+- **`smartsolo_orientation`** – eCompass and tilt: circular statistics, rotation over time, boot vs settled heading, IGRF declination, writing azimuths to StationXML or rotating data.
 - **`smartsolo_waveforms`** – index MiniSEED / SEG-Y files, cut the selected time windows for the selected nodes with ObsPy, apply SEED codes from a mapping table, write MiniSEED + StationXML.
 
 See [Selecting stations and cutting waveforms](#selecting-stations-and-cutting-waveforms) below for the second part.
@@ -31,9 +32,10 @@ lib/smartsolo_log.py                  log parser
 lib/smartsolo_locate.py               deployments, radius/polygon/time selection
 lib/smartsolo_waveforms.py            waveform index, extraction, StationXML
 lib/smartsolo_node.py                 node folder files, pulse test, geophone QC, response
+lib/smartsolo_orientation.py          eCompass / tilt tools
 notebooks/smartsolo_log_demo.ipynb    log parsing and plotting
 notebooks/select_and_extract_demo.ipynb  selection + waveform extraction
-notebooks/node_qc_demo.ipynb          pulse test, sensor QC, orientation, response
+notebooks/node_qc_demo.ipynb          pulse test, sensor QC, polarity, orientation, response
 scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
 data/nodes/453021267/                 DigiSolo.LOG of node 453021267
@@ -265,14 +267,18 @@ loc.export_stations(sel, "output/stations.csv")    # or .gpkg / .geojson / .shp
   normal ObsPy `Stream`.
 - Windows are `[start, end)` (end exclusive) so consecutive cuts don't
   share samples. Gaps stay masked (`fill_value=` to fill them).
+- **Polarity**: IGU-16HR data are multiplied by −1 by default
+  (`invert_polarity="auto"`), see [Polarity and channel naming](#polarity-and-channel-naming).
 - Traces get `stats.coordinates` (lat/lon/elevation of the first stable fix),
   `stats.serial` and `stats.deployment_id`.
 - Files are written as `out_dir/NET/STA/NET.STA.LOC.CHA__start__end.mseed`;
   `chunk="1D"` / `"1h"` splits them, `return_stream=False` saves memory for
   big jobs.
 - The StationXML has one station epoch per deployment with coordinates,
-  orientation (Z dip −90°, N az 0°, E az 90°), sample rate and the node as
-  sensor. No instrument response is attached yet (data stay in counts).
+  orientation (Z dip −90°, N az 0°, E az 90° after the polarity flip;
+  `polarity_inverted=False` → Z +90°, N 180°, E 270° for unflipped data),
+  sample rate, the node as sensor and optionally a response
+  (`response="auspass"` / `"test"` / `"nominal"`).
 
 ### All in one call
 
@@ -347,23 +353,88 @@ What the files tell us (sample node 453022522):
 ### Instrument response
 
 ```python
-inv = wf.build_inventory(sel, mapping="data/station_mapping.csv", response="test")   # or "nominal"
+inv = wf.build_inventory(sel, mapping="data/station_mapping.csv", response="auspass")
 ```
 
-`geophone_response(f0, damping, sensitivity, gain_db)` builds velocity → counts
-poles and zeros (two zeros at 0, poles `-h·ω0 ± i·ω0·√(1-h²)`) with
-3355.4428 counts/mV × gain. `"test"` uses each deployment's boot test if it
-passed and wasn't noisy, else the DT-SOLO data-sheet values (5 Hz, 0.70,
-80 V/m/s). The anti-alias FIR is not included.
+| `response=` | source |
+|---|---|
+| `"auspass"` (recommended) | AusPass/ANSIR published IGU-16HR 3C response: zeros 0, 0; poles −22.211059 ± 22.217768j (5.000 Hz, h 0.707); 257 019 225.55 counts/(m/s) flat gain, same for all channels/units, for polarity-flipped data in counts with gain removed |
+| `"test"` | each deployment's own boot-time geophone test (if it passed and wasn't noisy), else nominal |
+| `"nominal"` | DT-SOLO data sheet: 5 Hz, h 0.70, 80 V/(m/s) × 3355.4428 counts/mV × gain |
+
+`geophone_response(f0, damping, sensitivity, gain_db)` builds the latter two.
+The anti-alias FIR is not included. All responses assume the preamp gain was
+removed at export ("Remove Gain" in SoloLite) – otherwise amplitudes are
+×15.85 at 24 dB.
+
+## Polarity and channel naming
+
+From [AusPass – SmartSolo Node Polarity Issues](https://auspass.edu.au/xwiki/bin/view/Data/AusPass%20Data/)
+and [AusPass – SmartSolo Nodes](https://auspass.edu.au/xwiki/bin/view/Instrumentation/SmartSolo%20Nodes/):
+
+- **All IGU-16HR channels (Z, N and E) have negative polarity** relative to
+  FDSN StationXML (positive up / north / east). Freshly exported data need
+  ×(−1) on every channel. AusPass flips the waveform data rather than the
+  metadata, and all its waveforms are corrected since Dec 2025. Earlier only
+  Z was thought to be affected (e.g. the EarthScope notice), so don't mix
+  metadata from different groups. BD3C-5 broadband nodes need no flip.
+- This matches the SmartSolo manual: positive X = case moving south,
+  Y = west, Z = down.
+- Channel codes use instrument code **P** (geophone): `DPZ/DPN/DPE` at
+  250 sps, `EPZ/EPN/EPE` at 100 sps (SEED band code from the sample rate).
+- Other AusPass notes worth knowing: bury nodes flush (horizontal noise);
+  take compass readings away from the node; a constant ~18 s time offset
+  means SoloLite's leap-second file `smartsoloconfig.xml` is missing.
+
+In this toolbox: `extract_waveforms(invert_polarity="auto")` flips IGU-16HR
+data and records it in `stats.processing` / `stats.polarity_inverted`;
+`build_inventory(polarity_inverted=True)` then writes the FDSN orientation. If
+you keep raw polarity (`invert_polarity=False`), use
+`polarity_inverted=False` so the metadata describe it (Z dip +90, N 180°,
+E 270°).
+
+## Compass and tilt
+
+`lib/smartsolo_orientation.py` makes no assumption about what `eCompass North`
+means. It keeps the raw reading and adds interpretations:
+
+```python
+import smartsolo_orientation as so
+df   = sl.read_logs("data/nodes")
+deps = loc.build_deployments("data/nodes")
+ot   = so.orientation_table(df, deps, device_info=sl.read_device_info("data/nodes"))
+so.plot_orientation(df)
+```
+
+`orientation_table` gives one row per deployment: `heading_raw`,
+`heading_settled` (after `settle="6h"`), `heading_first/last`,
+`heading_std` (circular), `rotation_deg`, `rotation_deg_per_day`, tilt / roll /
+pitch, boot-time readings and `boot_vs_settled_deg`, IGRF `declination`,
+`inclination`, `horizontal_nT`, `heading_true_if_mag` (= settled + declination),
+and flags `heading_unstable`, `tilt_over_horizontal_spec` (>3°),
+`tilt_over_vertical_spec` (>10°). Circular statistics are used throughout.
+
+Sample deployments: headings stable to ~0.9°, but 453021267 rotates
++0.17°/day (2.3° in two weeks) with constant tilt – ice motion or compass
+drift. Boot readings are taken before planting (453021267: 24° tilt, 36° off),
+so use `heading_settled`. Declination −29.5°, horizontal field 19 000 nT.
+
+To use an orientation, add a `heading_used` column (field notes,
+`heading_true_if_mag`, or 0 if aligned to north) and a `station` column, then
+either
+
+```python
+so.set_channel_azimuths(inv, ot)          # metadata: N = heading, E = heading + 90
+so.rotate_to_ne(st, north_azimuth=127.2)  # or rotate the data to geographic N/E
+```
 
 ### Assumptions to check against real SmartSolo exports
 
 - File/folder names contain the 9-digit serial (otherwise use `serial_from=`).
 - Waveform time stamps are UTC (GPS-disciplined), the same as the logs.
-- Log Ch1/Ch2/Ch3 ↔ X/Y/Z: not documented; the manual defines X = N–S
-  (positive = case moves south), Y = E–W (positive = west), Z = vertical
-  (positive = down, SEG). EarthScope found archived SmartSolo Z data were not
-  down-positive – verify polarity on real data before setting dips/azimuths.
+- Log Ch1/Ch2/Ch3 ↔ X/Y/Z for the boot-test values: not documented.
+- That SoloLite was *not* already set to invert polarity at export (then the
+  default flip would double it - use `invert_polarity=False`).
 - Meaning of `eCompass North` (magnetic azimuth of the N arrow?) and whether
   the compass was calibrated.
 - SEG-Y exports have one component per trace with the start time in the

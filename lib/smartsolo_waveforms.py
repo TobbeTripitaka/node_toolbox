@@ -323,7 +323,7 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
                       components=None, component_map=None, out_dir=None, chunk=None,
                       merge_method: int = 1, fill_value=None, return_stream: bool = True,
                       default_network: str = "XX", encoding=None, component_func=None,
-                      verbose: bool = False):
+                      invert_polarity="auto", verbose: bool = False):
     """
     Cut waveforms for the selected deployments.
 
@@ -351,6 +351,15 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
     merge_method, fill_value :
         Passed to ``Stream.merge`` (gaps stay masked if ``fill_value`` is None;
         masked traces are split before writing).
+    invert_polarity : "auto" (default), True or False
+        SmartSolo IGU-16HR data have **negative polarity on all channels**
+        relative to the FDSN convention (positive = up / north / east):
+        the manual defines positive = case moving down / south / west, and
+        AusPass confirmed by controlled tests that freshly exported data need
+        ``x -1`` on every channel. ``"auto"`` inverts when the deployment's
+        ``device_type`` contains "IGU-16" (or is unknown). The inversion is
+        recorded in ``stats.processing`` and ``stats.polarity_inverted``.
+        Use ``build_inventory(..., polarity_inverted=...)`` with the same choice.
     component_func : callable(path, trace) -> str, optional
         Same function as given to :func:`index_waveforms`, if any.
     return_stream : bool
@@ -409,6 +418,15 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
             continue
         st.merge(method=merge_method, fill_value=fill_value)
         st.trim(t0, t1 - _EPS, nearest_sample=False)   # end is exclusive
+        flip = invert_polarity
+        if flip == "auto":
+            flip = "IGU-16" in str(dep.get("device_type", "IGU-16")) or pd.isna(dep.get("device_type", np.nan))
+        for tr in st:
+            tr.stats.polarity_inverted = bool(flip)
+            if flip:
+                tr.data = -tr.data
+                tr.stats.processing = list(getattr(tr.stats, "processing", [])) + [
+                    "node_toolbox: polarity inverted (x -1), SmartSolo IGU-16HR -> FDSN convention"]
         for tr in st:
             tr.stats.coordinates = AttribDict(latitude=float(dep["latitude"]),
                                               longitude=float(dep["longitude"]),
@@ -465,12 +483,14 @@ def _write_stream(st, out_dir, t0, t1, chunk, encoding):
 # --------------------------------------------------------------------------- #
 _EPS = 1e-6  # seconds; used to make window ends exclusive
 
-_ORIENT = {"Z": (0.0, -90.0), "N": (0.0, 0.0), "E": (90.0, 0.0)}
+_ORIENT = {"Z": (0.0, -90.0), "N": (0.0, 0.0), "E": (90.0, 0.0)}          # FDSN, after x -1
+_ORIENT_RAW = {"Z": (0.0, 90.0), "N": (180.0, 0.0), "E": (270.0, 0.0)}    # raw SmartSolo polarity
 
 
 def build_inventory(selection, mapping=None, components=("Z", "N", "E"), sampling_rate=None,
                     stream=None, default_network: str = "XX", source: str = "node_toolbox",
-                    response: str | None = None, gain_db: float = 0.0):
+                    response: str | None = None, gain_db: float = 0.0,
+                    polarity_inverted: bool = True):
     """
     Build an ObsPy Inventory (StationXML) for the selected deployments:
     one Station per deployment (start/end dates = deployment time span,
@@ -479,8 +499,19 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
     The channel codes follow :func:`seed_codes`. If ``stream`` is given, the
     channels and sample rates actually present in it are used.
 
+    ``polarity_inverted`` must match what was done to the waveforms
+    (``extract_waveforms(invert_polarity=...)``):
+
+      * ``True`` (default): data were multiplied by -1, so the channels follow
+        the FDSN convention: Z dip -90 (up positive), N azimuth 0, E azimuth 90;
+      * ``False``: raw SmartSolo polarity, described in the metadata instead:
+        Z dip +90 (down positive), N azimuth 180, E azimuth 270.
+
     ``response``:
       * ``None`` (default) - no instrument response (data stay in counts);
+      * ``"auspass"`` - the AusPass/ANSIR published IGU-16HR 3C response
+        (5 Hz, h 0.707, 257 019 226 counts/(m/s)); assumes the preamp gain was
+        removed at export ("Remove Gain" in SoloLite);
       * ``"nominal"`` - DT-SOLO 5 Hz data-sheet values (5 Hz, h 0.70,
         80 V/m/s) + 3355.4428 counts/mV × gain;
       * ``"test"`` - the mean f0 / damping / sensitivity of the boot-time
@@ -522,7 +553,9 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
                       description=(f"first stable GPS fix {dep.get('fix_time')}; "
                                    f"drift {dep.get('drift_m', np.nan):.1f} m"))
         resp = None
-        if response is not None:
+        if response == "auspass":
+            resp = sn.auspass_response()
+        elif response is not None:
             pars = dict(f0=sn.NOMINAL_5HZ["f0"], damping=sn.NOMINAL_5HZ["damping"],
                         sensitivity=sn.NOMINAL_5HZ["sensitivity"])
             if response == "test" and bool(dep.get("geophone_ok", False)) \
@@ -530,8 +563,9 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
                 pars = dict(f0=dep["test_resonate_freq_hz_mean"], damping=dep["test_damping_mean"],
                             sensitivity=dep["test_sensitivity_mean"])
             resp = sn.geophone_response(pars["f0"], pars["damping"], pars["sensitivity"], gain_db)
+        orient = _ORIENT if polarity_inverted else _ORIENT_RAW
         for n, s, l, c, rate in chans:
-            az, dip = _ORIENT.get(c[-1], (0.0, 0.0))
+            az, dip = orient.get(c[-1], (0.0, 0.0))
             sta.channels.append(Channel(
                 code=c, location_code=l, latitude=float(dep["latitude"]),
                 longitude=float(dep["longitude"]), elevation=float(dep["elevation"]),
@@ -549,7 +583,8 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
 def extract_region(log_root, waveform_root, mapping=None, point=None, radius_km=None,
                    polygon=None, start=None, end=None, out_dir="output", components=None,
                    chunk=None, deployments_cache=None, index_cache=None,
-                   return_stream=True, **select_kw):
+                   return_stream=True, invert_polarity="auto", response="auspass",
+                   **select_kw):
     """
     Logs -> deployments -> selection -> waveforms, all in one call.
 
@@ -571,7 +606,10 @@ def extract_region(log_root, waveform_root, mapping=None, point=None, radius_km=
     loc.export_stations(sel, out_dir / "stations.gpkg")
     index = index_waveforms(waveform_root, mapping=mapping, cache=index_cache)
     st = extract_waveforms(sel, index, mapping=mapping, components=components,
-                           out_dir=out_dir / "mseed", chunk=chunk, return_stream=return_stream)
-    inv = build_inventory(sel, mapping=mapping, stream=st if return_stream and len(st) else None)
+                           out_dir=out_dir / "mseed", chunk=chunk, return_stream=return_stream,
+                           invert_polarity=invert_polarity)
+    flipped = bool(st[0].stats.polarity_inverted) if len(st) else invert_polarity is not False
+    inv = build_inventory(sel, mapping=mapping, stream=st if return_stream and len(st) else None,
+                          response=response, polarity_inverted=flipped)
     inv.write(str(out_dir / "stations.xml"), format="STATIONXML")
     return sel, st, inv
