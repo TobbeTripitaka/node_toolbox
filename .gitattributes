@@ -1,2 +1,2 @@
-*.dld filter=lfs diff=lfs merge=lfs -text
 *.DLD filter=lfs diff=lfs merge=lfs -text
+*.dld filter=lfs diff=lfs merge=lfs -text
