@@ -242,7 +242,9 @@ def orientation_table(df: pd.DataFrame, deps: pd.DataFrame | None = None,
                 out = pd.concat([out, pd.DataFrame(f, index=out.index)], axis=1)
                 out["heading_true_if_mag"] = (out["heading_settled"] + out["declination"]) % 360
             except ImportError:
-                warnings.warn("ppigrf not installed - no declination (pip install ppigrf)")
+                warnings.warn("ppigrf not installed - declination columns are NaN (pip install ppigrf)")
+                for c in ("declination", "inclination", "horizontal_nT", "total_nT", "heading_true_if_mag"):
+                    out[c] = np.nan
     return out
 
 
