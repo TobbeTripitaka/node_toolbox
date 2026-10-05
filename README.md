@@ -49,6 +49,7 @@ data/nodes/<serial>/                  example logs, no waveform data (see data/n
   453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
 tests/fixtures/                       a V1.1.4 log with GNSS records (parser test)
 docs/FINDINGS.md                      everything learned from the files, with numbers
+paper/                                Seismica Software Report manuscript, figures and make_figures.py
 ```
 
 ### Install
