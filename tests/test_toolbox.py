@@ -199,6 +199,16 @@ def test_dld_labels_late_while_leap_seconds_unknown():
         assert len(dl.scan_dld(f, time_source="tow")) == 1
 
 
+def test_dld_reader_never_modifies_files():
+    """Reading headers, tags and samples leaves the DLD files byte-for-byte unchanged."""
+    import hashlib, os
+    import smartsolo_dld as dl
+    f = _dld("453009194", "seis000Z")
+    before = (hashlib.sha256(f.read_bytes()).hexdigest(), os.stat(f).st_mtime_ns)
+    dl.read_dld_header(f); dl.read_dld_tags(f); dl.scan_dld(f); dl.read_dld(f)
+    assert (hashlib.sha256(f.read_bytes()).hexdigest(), os.stat(f).st_mtime_ns) == before
+
+
 def test_dld_neighbouring_nodes_align_with_tow_time():
     """453004362 stands 5 m from 453009194: ambient noise lines up at ~0 lag."""
     from obspy import UTCDateTime

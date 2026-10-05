@@ -5,9 +5,13 @@ smartsolo_dld
 Read SmartSolo raw ``.DLD`` data files (``seis000X.DLD``, ``seis000Y.DLD``,
 ``seis000Z.DLD`` ...) directly into ObsPy, without exporting with SoloLite.
 
-The format is proprietary and undocumented; this reader is based on
-reverse-engineering files from IGU-16HR 3C nodes with firmware V1.0.5,
-V1.0.8 and V1.1.2 (250, 500 and 1000 samples/s). What is known:
+The format is undocumented. This reader is an independent implementation,
+written from scratch from the description in docs/DLD_FORMAT.md. That
+description comes only from inspecting data files recorded by our own
+IGU-16HR 3C nodes (firmware V1.0.5, V1.0.8, V1.1.2; 250, 500 and 1000
+samples/s) and from public information. No vendor software was decompiled
+or disassembled and no vendor code is included (docs/CLEAN_ROOM.md).
+Files are only ever opened read-only. What is known:
 
 File layout
 -----------

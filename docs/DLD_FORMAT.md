@@ -1,9 +1,15 @@
 # SmartSolo DLD file format (reverse-engineered)
 
 Notes from IGU-16HR 3C files written by firmware V1.0.5.6kp, V1.0.8.1be and
-V1.1.2.0be at 250, 500 and 1000 samples/s. See also [FINDINGS.md](FINDINGS.md). Nothing here comes from DTCC
-documentation – treat it as a working hypothesis and check against a SoloLite
-export (`smartsolo_dld.compare_with_export`) when one is available.
+V1.1.2.0be at 250, 500 and 1000 samples/s. See also [FINDINGS.md](FINDINGS.md).
+
+This description was worked out only by inspecting data files recorded by our
+own nodes and comparing them with the nodes' log files and with public
+information. No vendor software was decompiled or disassembled, and no vendor
+code or confidential documents were used ([CLEAN_ROOM.md](CLEAN_ROOM.md)).
+Nothing here comes from DTCC format documentation, so treat it as a working
+hypothesis and check it against a SoloLite export
+(`smartsolo_dld.compare_with_export`) when one is available.
 
 Implemented in [`lib/smartsolo_dld.py`](../lib/smartsolo_dld.py).
 

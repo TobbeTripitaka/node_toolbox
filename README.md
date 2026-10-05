@@ -5,7 +5,7 @@ Tools to work with SmartSolo node type instruments. Especially in Antarctic sett
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
 - **`smartsolo_node`** – read the other files in a node folder (script, `device.ini`, `PULSE_*.WAV`): test limits, geophone pulse-test analysis, boot-by-boot sensor QC, orientation, instrument response.
 - **`smartsolo_orientation`** – eCompass and tilt: circular statistics, rotation over time, boot vs settled heading, IGRF declination, writing azimuths to StationXML or rotating data.
-- **`smartsolo_dld`** – read raw SmartSolo `.DLD` data files directly (no SoloLite export), see [docs/DLD_FORMAT.md](docs/DLD_FORMAT.md).
+- **`smartsolo_dld`** – read raw SmartSolo `.DLD` data files directly (no SoloLite export), see [docs/DLD_FORMAT.md](docs/DLD_FORMAT.md). Independent, read-only implementation; see [docs/CLEAN_ROOM.md](docs/CLEAN_ROOM.md) for how it was made.
 - **`smartsolo_waveforms`** – index MiniSEED / SEG-Y files, cut the selected time windows for the selected nodes with ObsPy, apply SEED codes from a mapping table, write MiniSEED + StationXML.
 
 See [Selecting stations and cutting waveforms](#selecting-stations-and-cutting-waveforms) below for the second part.
@@ -520,3 +520,13 @@ so.rotate_to_ne(st, north_azimuth=127.2)  # or rotate the data to geographic N/E
 - SEG-Y exports have one component per trace with the start time in the
   trace headers; how SoloLite labels components in SEG-Y may need `component_func=lambda path, trace: ...`
   (in both `index_waveforms` and `extract_waveforms`).
+
+## Independence and trademarks
+
+The DLD reader was written from scratch from a byte-level description
+([docs/DLD_FORMAT.md](docs/DLD_FORMAT.md)). That description was worked out
+only from our own data files and public information, without decompiling
+or disassembling any vendor software ([docs/CLEAN_ROOM.md](docs/CLEAN_ROOM.md)).
+It only reads `.DLD` files and never modifies them. SmartSolo, SoloLite and
+DTCC are names and trademarks of their owners; this project is not
+affiliated with or endorsed by them.
