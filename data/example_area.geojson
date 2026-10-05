@@ -3,6 +3,6 @@
 "name": "example_area",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "name": "upper_site" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 11.112, -71.5495 ], [ 11.119, -71.5495 ], [ 11.119, -71.547 ], [ 11.112, -71.547 ], [ 11.112, -71.5495 ] ] ] } }
+{"type":"Feature","properties":{"name":"upper_site"},"geometry":{"type":"Polygon","coordinates":[[[11.112,-71.5495],[11.119,-71.5495],[11.119,-71.547],[11.112,-71.547],[11.112,-71.5495]]]}}
 ]
 }
