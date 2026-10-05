@@ -1,10 +1,9 @@
-# What we learned from the SmartSolo files
+# What I learned from the SmartSolo DLD files
 
 A record of everything found while building this toolbox, including results
 from sample files that are no longer in the repository (raw DLD files from
 Dronning Maud Land, Casey, a two-node side-by-side test, and a longer later
-recording of the break-test nodes). Numbers are
-given so they can be checked against new data.
+recording of the break-test nodes). Numbers are given so they can be checked against new data.
 
 Nodes: DTCC SmartSolo IGU-16HR 3C 5 Hz, firmware V1.0.5.6kp, V1.0.8.1be,
 V1.1.2.0be and V1.1.4.2be.
