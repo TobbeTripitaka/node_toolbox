@@ -45,7 +45,7 @@ mpl.rcParams.update({"font.size": 7.5, "axes.titlesize": 8, "axes.labelsize": 7.
 
 
 def save(fig, name):
-    fig.savefig(OUT / f"{name}.pdf", bbox_inches="tight")
+    fig.savefig(OUT / f"{name}.pdf", bbox_inches="tight", metadata={"CreationDate": None})  # reproducible files
     fig.savefig(OUT / f"{name}.png", bbox_inches="tight", dpi=200)
     plt.close(fig)
     print("wrote", name)
