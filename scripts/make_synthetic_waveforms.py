@@ -1,6 +1,6 @@
 """
 Generate small synthetic SmartSolo-like waveform files for testing / the demo
-notebook, matching the two sample logs in data/logfiles.
+notebook, matching the two sample logs in data/nodes/.
 
     python scripts/make_synthetic_waveforms.py            # -> data/seismic_traces
 

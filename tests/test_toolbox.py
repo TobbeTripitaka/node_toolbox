@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "lib"))
 import smartsolo_log as sl          # noqa: E402
 import smartsolo_locate as loc      # noqa: E402
 
-LOGS = ROOT / "data" / "logfiles"
+LOGS = ROOT / "data" / "nodes"
 
 
 def _gps(t, lat, lon, alt=100.0):
@@ -45,7 +45,7 @@ def moved_log(tmp_path):
 
 
 def test_sample_counts_match_header():
-    for f in sorted(LOGS.glob("*.LOG")):
+    for f in sorted(LOGS.rglob("DigiSolo.LOG")):
         df = sl.read_log(f)
         hdr, parsed = df.attrs["header_counts"], df.attrs["parsed_counts"]
         for k in ["GPS", "Temperature", "Memory", "Battery", "DeviceInfo"]:
@@ -104,3 +104,19 @@ def test_extraction_with_synthetic_data(tmp_path):
     assert all(tr.stats.channel.startswith("EP") for tr in st)
     inv = wf.build_inventory(sel, mapping=ROOT / "data" / "station_mapping.csv", stream=st)
     assert len(inv.get_contents()["channels"]) == 6
+
+
+def test_node_folder_and_pulse():
+    pytest.importorskip("scipy")
+    import smartsolo_node as sn
+    node = sn.read_node_folder(LOGS / "453022522")
+    assert node["serial"] == "453022522"
+    assert node["limits"]["damping"] == (0.647, 0.752)
+    p = node["pulse"].set_index("axis")
+    assert list(p.index) == ["X", "Y", "Z"]
+    assert ((p["f0_hz"] > 4.8) & (p["f0_hz"] < 5.1)).all()        # ~5 Hz geophone at 1000 sps
+    assert ((p["damping"] > 0.68) & (p["damping"] < 0.75)).all()
+    assert ((p["noise_rms_uV"] > 1.0) & (p["noise_rms_uV"] < 1.3)).all()   # matches log RMS Noise
+    qc = node["qc"]
+    assert qc[qc.boot_no == 4]["ok_all"].all()
+    assert qc[qc.boot_no == 3]["noisy"].all()

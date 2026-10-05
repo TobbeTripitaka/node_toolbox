@@ -191,6 +191,12 @@ def _deployments_from_log(df: pd.DataFrame, info: pd.DataFrame | None,
             drift = float(np.hypot(lx, ly))
             days = (last.index.mean() - t0) / pd.Timedelta("1D")
             row.update(drift_m=drift, drift_m_per_day=drift / days if days > 0.5 else np.nan)
+            # orientation from the eCompass / tilt sensor (median over the deployment)
+            for col in ["ecompass_north", "tilted_angle", "roll_angle", "pitch_angle"]:
+                if col in after:
+                    row[f"{col}_median"] = float(after[col].median())
+            if "ecompass_north" in after:
+                row["ecompass_north_std"] = float(after["ecompass_north"].std())
 
         if info is not None and not info.empty:
             m = info[(info["serial_number"].astype(str) == str(row["serial"]))
@@ -201,6 +207,15 @@ def _deployments_from_log(df: pd.DataFrame, info: pd.DataFrame | None,
                 for col in ["boot_reason", "device_type", "firmware_version", "sample_rate"]:
                     if col in m:
                         row[col] = m[col]
+                # boot-time geophone test of this power-up
+                import smartsolo_node as sn
+                qc = sn.geophone_qc(pd.DataFrame([m]))
+                if len(qc):
+                    row["geophone_ok"] = bool(qc["ok_all"].all())
+                    row["geophone_test_noisy"] = bool(qc["noisy"].any())
+                    for col in ["resonate_freq_hz", "damping", "sensitivity"]:
+                        row[f"test_{col}_mean"] = float(qc[col].mean())
+                    row["test_resistance_ohm_mean"] = float(qc["resistance_1_ohm"].mean())
         rows.append(row)
     return rows
 
@@ -234,7 +249,11 @@ def build_deployments(logs, n_stable: int = 5, stable_tol_m: float = 10.0,
         ``end`` (UTC), ``latitude``, ``longitude``, ``elevation`` (first
         stable fix), ``fix_time``, quality columns (``n_fixes``,
         ``unstable_fixes_skipped``, ``median_offset_m``, ``max_offset_m``,
-        ``drift_m``, ``drift_m_per_day``) and ``log_file``.
+        ``drift_m``, ``drift_m_per_day``), median orientation
+        (``ecompass_north_median``, ``tilted_angle_median``, ``roll_angle_median``,
+        ``pitch_angle_median``), the boot-time geophone test of that power-up
+        (``geophone_ok``, ``geophone_test_noisy``, ``test_*_mean``) and
+        ``log_file``.
     """
     import geopandas as gpd
 

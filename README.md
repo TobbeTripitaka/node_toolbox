@@ -3,6 +3,7 @@ Tools to work with SmartSolo node type instruments. Especially in Antarctic sett
 
 - **`smartsolo_log`** – read `DigiSolo.LOG` state-of-health logs into pandas (temperature, voltage, GPS, tilt ... against time).
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
+- **`smartsolo_node`** – read the other files in a node folder (script, `device.ini`, `PULSE_*.WAV`): test limits, geophone pulse-test analysis, boot-by-boot sensor QC, orientation, instrument response.
 - **`smartsolo_waveforms`** – index MiniSEED / SEG-Y files, cut the selected time windows for the selected nodes with ObsPy, apply SEED codes from a mapping table, write MiniSEED + StationXML.
 
 See [Selecting stations and cutting waveforms](#selecting-stations-and-cutting-waveforms) below for the second part.
@@ -29,11 +30,14 @@ SmartSolo nodes (e.g. IGU-16HR 3C 5Hz) and turns it into a **pandas DataFrame**:
 lib/smartsolo_log.py                  log parser
 lib/smartsolo_locate.py               deployments, radius/polygon/time selection
 lib/smartsolo_waveforms.py            waveform index, extraction, StationXML
+lib/smartsolo_node.py                 node folder files, pulse test, geophone QC, response
 notebooks/smartsolo_log_demo.ipynb    log parsing and plotting
 notebooks/select_and_extract_demo.ipynb  selection + waveform extraction
+notebooks/node_qc_demo.ipynb          pulse test, sensor QC, orientation, response
 scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
-data/logfiles/                        two sample logs (nodes 453021267, 453022522)
+data/nodes/453021267/                 DigiSolo.LOG of node 453021267
+data/nodes/453022522/                 complete node folder (log, script, device.ini, PULSE_*.WAV ...)
 data/station_mapping.csv              example serial -> SEED code table
 data/example_area.geojson             example selection polygon
 data/seismic_traces/                  (generated, not in git) synthetic waveforms
@@ -60,7 +64,7 @@ import smartsolo_log as sl
 ```python
 import smartsolo_log as sl
 
-df = sl.read_log("data/logfiles/DigiSolo_453021267.LOG")
+df = sl.read_log("data/nodes/453021267/DigiSolo.LOG")
 
 # Temperature or battery voltage against time
 df["temperature"].dropna().plot()
@@ -84,7 +88,7 @@ gps = df[df.record_type == "GPS"].dropna(axis=1, how="all")
 ### Many nodes
 
 ```python
-nodes = sl.read_logs("data/logfiles")              # folder (recursive *.LOG)
+nodes = sl.read_logs("data/nodes")              # folder (recursive *.LOG)
 nodes = sl.read_logs("survey/**/DigiSolo*.LOG")    # glob
 nodes = sl.read_logs(["a.LOG", "b.LOG"])           # list
 
@@ -99,7 +103,7 @@ sl.plot_series(nodes, ["temperature", "voltage"], by="serial")   # one line per 
 ### Device metadata
 
 ```python
-info = sl.read_device_info("data/logfiles")
+info = sl.read_device_info("data/nodes")
 ```
 
 One row per `[DeviceInfoNNNNN]` block (written at each boot), indexed by
@@ -293,10 +297,75 @@ python scripts/make_synthetic_waveforms.py      # -> data/seismic_traces/
 pytest -q tests
 ```
 
+## Node folder files, pulse test and sensor QC
+
+`lib/smartsolo_node.py` reads the small files every node writes next to
+`DigiSolo.LOG`:
+
+| file | content | function |
+|---|---|---|
+| `device.ini` | serial, firmware | `read_device_ini` |
+| `sct_par.xml` (+ identical backup `sct_par_b.xml`) | acquisition script incl. test limits | `read_script`, `script_limits` |
+| `SCT_INT.XML` | script as interpreted by the node | `read_script` |
+| `PULSE_X/Y/Z.WAV` | geophone pulse test of the **latest** power-up | `read_pulse`, `analyse_pulse` |
+| `DigiSolo.TXT`, `guardfile.db` | file-system marker, binary log journal | ignored |
+
+```python
+import smartsolo_node as sn
+node = sn.read_node_folder("data/nodes/453022522")
+node["limits"]   # resistance 1640–1905 Ω, damping 0.647–0.752, f0 4.63–5.37 Hz, 71–82 V/m/s, battery 6.5/6.0/8.35 V
+node["pulse"]    # per axis: f0, damping, noise floor (µV), step plateaus (mV)
+node["qc"]       # per boot and channel: logged test values, pass/fail vs limits, 'noisy' flag
+```
+
+What the files tell us (sample node 453022522):
+
+- **Pulse WAVs are 1000 sps, not the 10 000 Hz in the WAV header.** The file
+  is the 16-s geophone/ADC test stage (SmartSolo manual) in 16 000 samples;
+  only at 1000 sps does the ringing give the ~5 Hz / h≈0.7 of the geophone.
+  `read_pulse` uses 1000 Hz by default (`sampling_rate=None` = header).
+- The test: ~1.9 s clipped pre-test, then current steps (+, off, −, off, +,
+  off; ~1 s each), then ~6 s quiet. Fitting a damped oscillator after each
+  switch-off gives f0 = 4.95–4.98 Hz and h = 0.71–0.72, within ~2 % of the
+  log's boot-4 values. The quiet part is 3.9 counts RMS = **1.16 µV**, the
+  same as the log's `ChN RMS Noise`, so that field is µV and the
+  **3355.4428 counts/mV** ADC factor is confirmed.
+- **Boot-test QC**: coil resistance follows temperature like copper
+  (~1620 Ω at −2 °C vs ~1780 Ω warm), and the script uses
+  temperature-corrected limits. 453022522's deployment-time test was taken
+  while it was moving (spread noise up to 22 000) and two channels are out of
+  spec although the log says *passed*; its recovery test is clean. Use
+  `noisy` / `ok_all` rather than `Geophone Test Passed`.
+- **Orientation** (now in the deployment table): tilt 1.7° and **5.1°**
+  (above the 3° horizontal-geophone spec for 453022522); eCompass 157° and
+  126° (std ~1°). With IGRF declination −29.5° (`magnetic_declination`,
+  needs `ppigrf`), the N arrows would point ~127° and ~97° true – check field
+  notes / compass calibration before rotating horizontals.
+- **Data format**: `MiniSeed_Output_Mode = 0` → raw data are `.DLD` files
+  (see `Notify` records), which must be exported with SoloLite.
+
+### Instrument response
+
+```python
+inv = wf.build_inventory(sel, mapping="data/station_mapping.csv", response="test")   # or "nominal"
+```
+
+`geophone_response(f0, damping, sensitivity, gain_db)` builds velocity → counts
+poles and zeros (two zeros at 0, poles `-h·ω0 ± i·ω0·√(1-h²)`) with
+3355.4428 counts/mV × gain. `"test"` uses each deployment's boot test if it
+passed and wasn't noisy, else the DT-SOLO data-sheet values (5 Hz, 0.70,
+80 V/m/s). The anti-alias FIR is not included.
+
 ### Assumptions to check against real SmartSolo exports
 
 - File/folder names contain the 9-digit serial (otherwise use `serial_from=`).
 - Waveform time stamps are UTC (GPS-disciplined), the same as the logs.
+- Log Ch1/Ch2/Ch3 ↔ X/Y/Z: not documented; the manual defines X = N–S
+  (positive = case moves south), Y = E–W (positive = west), Z = vertical
+  (positive = down, SEG). EarthScope found archived SmartSolo Z data were not
+  down-positive – verify polarity on real data before setting dips/azimuths.
+- Meaning of `eCompass North` (magnetic azimuth of the N arrow?) and whether
+  the compass was calibrated.
 - SEG-Y exports have one component per trace with the start time in the
   trace headers; how SoloLite labels components in SEG-Y may need `component_func=lambda path, trace: ...`
   (in both `index_waveforms` and `extract_waveforms`).

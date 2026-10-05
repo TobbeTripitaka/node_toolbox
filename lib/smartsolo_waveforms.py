@@ -9,7 +9,7 @@ and write MiniSEED + StationXML.
 Typical workflow
 ----------------
 >>> import smartsolo_locate as loc, smartsolo_waveforms as wf
->>> deps  = loc.build_deployments("data/logfiles")
+>>> deps  = loc.build_deployments("data/nodes")
 >>> sel   = loc.select_deployments(deps, point=(-71.549, 11.117), radius_km=1,
 ...                                start="2024-12-26T00:00", end="2024-12-26T01:00")
 >>> index = wf.index_waveforms("data/seismic_traces")
@@ -469,17 +469,27 @@ _ORIENT = {"Z": (0.0, -90.0), "N": (0.0, 0.0), "E": (90.0, 0.0)}
 
 
 def build_inventory(selection, mapping=None, components=("Z", "N", "E"), sampling_rate=None,
-                    stream=None, default_network: str = "XX", source: str = "node_toolbox"):
+                    stream=None, default_network: str = "XX", source: str = "node_toolbox",
+                    response: str | None = None, gain_db: float = 0.0):
     """
     Build an ObsPy Inventory (StationXML) for the selected deployments:
     one Station per deployment (start/end dates = deployment time span,
     coordinates = first stable fix) and one Channel per component.
 
     The channel codes follow :func:`seed_codes`. If ``stream`` is given, the
-    channels and sample rates actually present in it are used. No instrument
-    response is attached (counts); the geophone self-test values for each
-    boot are in ``smartsolo_log.read_device_info``.
+    channels and sample rates actually present in it are used.
+
+    ``response``:
+      * ``None`` (default) - no instrument response (data stay in counts);
+      * ``"nominal"`` - DT-SOLO 5 Hz data-sheet values (5 Hz, h 0.70,
+        80 V/m/s) + 3355.4428 counts/mV × gain;
+      * ``"test"`` - the mean f0 / damping / sensitivity of the boot-time
+        geophone test of that deployment (``test_*_mean`` columns), falling
+        back to nominal when the test failed or was noisy.
+    The test values cannot yet be assigned to Z/N/E individually because the
+    log's Ch1/Ch2/Ch3 -> axis mapping is not documented.
     """
+    import smartsolo_node as sn
     from obspy import UTCDateTime
     from obspy.core.inventory import Channel, Equipment, Inventory, Network, Site, Station
 
@@ -511,13 +521,22 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
                       site=Site(name=f"SmartSolo {dep['serial']} ({dep.get('deployment_id', '')})"),
                       description=(f"first stable GPS fix {dep.get('fix_time')}; "
                                    f"drift {dep.get('drift_m', np.nan):.1f} m"))
+        resp = None
+        if response is not None:
+            pars = dict(f0=sn.NOMINAL_5HZ["f0"], damping=sn.NOMINAL_5HZ["damping"],
+                        sensitivity=sn.NOMINAL_5HZ["sensitivity"])
+            if response == "test" and bool(dep.get("geophone_ok", False)) \
+                    and not bool(dep.get("geophone_test_noisy", True)):
+                pars = dict(f0=dep["test_resonate_freq_hz_mean"], damping=dep["test_damping_mean"],
+                            sensitivity=dep["test_sensitivity_mean"])
+            resp = sn.geophone_response(pars["f0"], pars["damping"], pars["sensitivity"], gain_db)
         for n, s, l, c, rate in chans:
             az, dip = _ORIENT.get(c[-1], (0.0, 0.0))
             sta.channels.append(Channel(
                 code=c, location_code=l, latitude=float(dep["latitude"]),
                 longitude=float(dep["longitude"]), elevation=float(dep["elevation"]),
                 depth=0.0, azimuth=az, dip=dip, sample_rate=float(rate),
-                start_date=t0, end_date=t1, sensor=sensor))
+                start_date=t0, end_date=t1, sensor=sensor, response=resp))
         nets.setdefault(net_code, Network(code=net_code, stations=[])).stations.append(sta)
 
     return Inventory(networks=list(nets.values()), source=source,
