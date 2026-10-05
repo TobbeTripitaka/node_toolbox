@@ -198,11 +198,14 @@ def _deployments_from_log(df: pd.DataFrame, info: pd.DataFrame | None,
             days = (last.index.mean() - t0) / pd.Timedelta("1D")
             row.update(drift_m=drift, drift_m_per_day=drift / days if days > 0.5 else np.nan)
             # orientation from the eCompass / tilt sensor (median over the deployment)
-            for col in ["ecompass_north", "tilted_angle", "roll_angle", "pitch_angle"]:
+            for col in ["tilted_angle", "roll_angle", "pitch_angle"]:
                 if col in after:
                     row[f"{col}_median"] = float(after[col].median())
             if "ecompass_north" in after:
-                row["ecompass_north_std"] = float(after["ecompass_north"].std())
+                # circular statistics; some firmware logs -180..180, others 0..360
+                import smartsolo_orientation as so
+                row["ecompass_north_median"] = so.circular_mean(after["ecompass_north"] % 360)
+                row["ecompass_north_std"] = so.circular_std(after["ecompass_north"] % 360)
 
         if info is not None and not info.empty:
             m = info[(info["serial_number"].astype(str) == str(row["serial"]))
@@ -473,7 +476,7 @@ def _device_from_serial(serial: str) -> str:
 
 
 def build_deployments_from_dld(dld, n_stable: int = 5, stable_tol_m: float = 10.0,
-                               tag_marks: str = "block_start"):
+                               tag_marks: str | None = None):
     """
     Deployments from raw DLD files alone - useful when the logs are missing.
 

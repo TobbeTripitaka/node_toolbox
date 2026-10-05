@@ -1,7 +1,7 @@
 # SmartSolo DLD file format (reverse-engineered)
 
-Notes from IGU-16HR 3C files written by firmware V1.0.8.1be, V1.1.2.0be and
-V1.1.4.2be at 250 and 1000 samples/s. Nothing here comes from DTCC
+Notes from IGU-16HR 3C files written by firmware V1.0.5.6kp, V1.0.8.1be and
+V1.1.2.0be at 250, 500 and 1000 samples/s. See also [FINDINGS.md](FINDINGS.md). Nothing here comes from DTCC
 documentation – treat it as a working hypothesis and check against a SoloLite
 export (`smartsolo_dld.compare_with_export`) when one is available.
 
@@ -46,12 +46,14 @@ block boundaries).
 | 0x0C0 | char[16] | `20241008` | end date |
 | 0x0D0 | int64 | | start tick (ms) |
 | 0x0D8 | int64 | | end tick (ms); end − start = duration in ms |
-| 0x100 | int32[7] | 0, 18, 171, 87, 0 … | ? (0x104 = 18 on V1.0.8 files: leap seconds?) |
-| 0x11C | float32 | 1642.0 | altitude (m) |
+| 0x100 | int32 | 0 | ? |
+| 0x104 | int32 | 0 or 18 | GPS−UTC leap seconds known to the receiver (0 = not yet; labels then 2 s late) |
+| 0x108 | int32[5] | 171, 87, 0 … | ? |
+| 0x11C | float32 | 1642.0 | altitude (m) at file close |
 | 0x120 | int32[4] | 1, 2, 3, 0 | ? |
 | 0x140 | char[80] | `dmlparameterscript` | script name |
-| 0x190 | float64 | 11.118683 | longitude |
-| 0x198 | float64 | −71.5494405 | latitude |
+| 0x190 | float64 | 11.118683 | longitude at file close (not at installation!) |
+| 0x198 | float64 | −71.5494405 | latitude at file close |
 | 0x1A0–0x1FF | | zeros | |
 
 Header bytes are identical in the X, Y and Z files of one recording.
@@ -62,26 +64,30 @@ Header bytes are identical in the X, Y and Z files of one recording.
 |---|---|---|---|
 | +0 | int32 | 0 | flag? |
 | +4 | int64 | 10106305104488 | tick, ms: +1000 per tag at 1000 sps, +4000 at 250 sps |
-| +12 | char[11] | `203718.00` | UTC time, whole seconds |
+| +12 | char[11] | `203718.00` | UTC time as text, whole seconds – 2 s late until the leap seconds are known |
 | +23 | char[9] | `20250211` | UTC date |
 | +32 | float64 | −66.282305 | latitude |
 | +40 | int32 | 0, ±1 | probably clock phase error |
-| +44 | int32 | 0 … 3000 | 0, then +100 per second near the end of the file |
+| +44 | int32 | 0 … 44800 | time since the last GPS synchronisation, 10 ms units (resets to 0 at each sync) |
 | +48 | float64 | 110.530844 | longitude |
-| +56 | char[16] | `247057000` | GPS time of week in ms (whole seconds) |
+| +56 | char[16] | `247057000` | GPS time of week in ms of the *next* GPS pulse (whole seconds) |
 
 - Sample rate = 1000 samples / (tick step / 1000 s). This matches the log:
   `Sample Rate` in `DigiSolo.LOG` / the script is the **sample interval in
   10 µs units** (100 → 1 ms → 1000 sps; 400 → 4 ms → 250 sps; 200 → 500 sps).
 - The absolute tick value is not a linear clock across dates, so only its
-  differences are used; UTC comes from the date/time text.
-- **Timing convention (unverified)**: `tag_marks="block_start"` (default)
+  differences are used.
+- **UTC of a tag** (default, `time_source="tow"`): GPS week (from the text
+  date) + TOW − 1 s − (GPS−UTC, 18 s since 2017). This is continuous and
+  agrees with the text time once the receiver knows the leap seconds.
+  The text time (`time_source="label"`) is 2 s late before that and then
+  jumps back 2 s mid-file – this creates false 2-s offsets between nodes
+  (shown by cross-correlation in `notebooks/dld_demo.ipynb`).
+- **Block convention (unverified)**: `tag_marks="block_start"` (default)
   takes tag *k* as the time of the first sample of block *k* (the block
-  before the tag), so the file starts at the header start time.
-  `"block_end"` shifts all samples one block earlier. Two nodes 10 m apart
-  that started 4 s apart line up to within one sample (cc 0.9) either way,
-  so the relative timing is right; the absolute offset needs a SoloLite
-  export to confirm.
+  before the tag). `"block_end"` shifts all samples one block earlier.
+  Settle with a SoloLite export of the same file
+  (`smartsolo_dld.compare_with_export`).
 
 ## Sample values
 

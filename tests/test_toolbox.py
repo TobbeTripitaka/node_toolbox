@@ -159,42 +159,63 @@ def test_polarity_and_auspass_response(tmp_path):
 
 
 # --------------------------------------------------------------------------- #
-# Raw DLD files
+# Raw DLD files (break test, 4 complete nodes, Git LFS)
 # --------------------------------------------------------------------------- #
+BT = ROOT / "data" / "break_test"
+
+
+def _dld(serial, name):
+    f = next((BT / serial).glob(f"*/{name}.DLD"), None)
+    if f is None or f.stat().st_size < 1000:      # LFS pointer only
+        pytest.skip("DLD files not present (git lfs pull)")
+    return f
+
+
 def test_dld_header_tags_and_samples():
     import numpy as np
     import smartsolo_dld as dl
-    f = NODES / "453038428" / "seis000Z.DLD"
+    f = _dld("453009194", "seis000Z")
     h = dl.read_dld_header(f)
-    assert h["serial"] == "453038428" and h["component"] == "Z" and h["file_index"] == 0
+    assert h["serial"] == "453009194" and h["component"] == "Z" and h["leap_seconds"] == 0
     tags = dl.read_dld_tags(f)
-    assert len(tags) == 144 and (tags["tick_ms"].diff().dropna() == 4000).all()
-    assert tags["time"].iloc[0] == h["start"] and tags["time"].iloc[-1] == h["end"]
+    assert (tags["tick_ms"].diff().dropna() == 2000).all()               # 1000 samples / 2 s -> 500 sps
+    assert (tags["label_minus_tow_s"] == 2).all()                         # leap seconds not yet known
     st = dl.read_dld(f)
     tr = st[0]
-    assert len(st) == 1 and tr.stats.sampling_rate == 250 and tr.stats.npts == 144 * 1000
-    assert str(tr.stats.starttime) == "2024-10-08T02:25:23.000000Z"
-    # continuity across the 72-byte tags: no extra jumps at block boundaries
+    assert len(st) == 1 and tr.stats.sampling_rate == 500 and tr.stats.npts == len(tags) * 1000
     d = np.abs(np.diff(tr.data.astype(float)))
-    assert np.median(d[999::1000]) < 2 * np.median(d)
-    # window read decodes only the needed blocks
-    w = dl.read_dld(f, starttime="2024-10-08T02:30:00", endtime="2024-10-08T02:30:10")[0]
-    assert w.stats.npts == 2501 and np.array_equal(w.data, tr.slice(w.stats.starttime, w.stats.endtime).data)
+    assert np.median(d[999::1000]) < 2 * np.median(d)                    # contiguous across tags
+    w = dl.read_dld(f, starttime="2023-03-31T01:40:00", endtime="2023-03-31T01:40:10")[0]
+    assert w.stats.npts == 5001 and np.array_equal(w.data, tr.slice(w.stats.starttime, w.stats.endtime).data)
 
 
-def test_dld_two_nodes_are_time_aligned():
-    """Two nodes 10 m apart, started 4 s apart: the same signal must line up."""
+def test_dld_label_jump_and_tow_time():
+    """The text labels jump 2 s when the receiver learns the leap seconds; TOW doesn't."""
+    import smartsolo_dld as dl
+    f = _dld("453009194", "seis001Z")
+    assert len(dl.scan_dld(f, time_source="label")) == 2
+    assert len(dl.scan_dld(f, time_source="tow")) == 1
+    tags = dl.read_dld_tags(f)
+    assert set(tags["label_minus_tow_s"]) == {2.0, 0.0}
+
+
+def test_dld_nodes_align_only_with_tow_time():
+    """Nodes 453009194 (labels still +2 s at 01:30) and 453010047 (labels already
+    corrected) line up with TOW time but are 2 s apart with label time."""
     from obspy import UTCDateTime
     from obspy.signal.cross_correlation import correlate, xcorr_max
     import smartsolo_dld as dl
-    a = dl.read_dld(NODES / "453038428" / "seis000Z.DLD")[0]
-    b = dl.read_dld(NODES / "453038431" / "seis000Z.DLD")[0]
-    t0, t1 = UTCDateTime("2024-10-08T02:28:00"), UTCDateTime("2024-10-08T02:32:00")
-    x, y = (tr.copy().trim(t0, t1) for tr in (a, b))
-    for tr in (x, y):
-        tr.detrend("demean"); tr.filter("bandpass", freqmin=1, freqmax=20)
-    lag, cc = xcorr_max(correlate(x.data, y.data, 500), abs_max=False)
-    assert abs(lag) <= 2 and cc > 0.8
+    t0, t1 = UTCDateTime("2023-04-07T00:30:00"), UTCDateTime("2023-04-07T00:50:00")
+    lags = {}
+    for src in ("tow", "label"):
+        x, y = (dl.read_dld(_dld(s, "seis001Z"), starttime=t0, endtime=t1, time_source=src)[0]
+                for s in ("453009194", "453010047"))
+        for tr in (x, y):
+            tr.detrend("demean"); tr.filter("bandpass", freqmin=2, freqmax=40)
+        n = min(x.stats.npts, y.stats.npts)
+        lag, cc = xcorr_max(correlate(x.data[:n], y.data[:n], 1500), abs_max=False)
+        lags[src] = lag / 500
+    assert abs(lags["tow"]) < 0.05 and abs(lags["label"] - 2.0) < 0.05
 
 
 def test_dld_pipeline_mseed_and_segy(tmp_path):
@@ -202,23 +223,28 @@ def test_dld_pipeline_mseed_and_segy(tmp_path):
     from obspy import read
     import smartsolo_dld as dl
     import smartsolo_waveforms as wf
-    dd = loc.build_deployments_from_dld(NODES)
-    assert {"453022317", "453027665", "453038428", "453038431"} <= set(dd["serial"])
-    deps = loc.combine_deployments(loc.build_deployments(NODES), dd)
-    idx = wf.index_waveforms(NODES)
-    assert set(idx["format"]) == {"DLD"}
-    sel = loc.select_deployments(deps, point=(39.5962, 116.7604), radius_km=0.05,
-                                 start="2024-10-08T02:31:20", end="2024-10-08T02:31:30")
-    assert sorted(sel["serial"]) == ["453038428", "453038431"]
+    _dld("453010077", "seis000Z")
+    deps = loc.combine_deployments(loc.build_deployments(BT), loc.build_deployments_from_dld(BT))
+    idx = wf.index_waveforms([p for p in BT.rglob("seis000?.DLD")])
+    sel = loc.select_deployments(deps, point=(-42.9017, 147.3301), radius_km=0.03,
+                                 start="2023-03-31T01:40:00", end="2023-03-31T01:40:20")
+    assert sorted(sel["serial"]) == ["453010077", "453010167"]
     for fmt in ("MSEED", "SEGY"):
         st = wf.extract_waveforms(sel, idx, out_dir=tmp_path / fmt, out_format=fmt)
-        assert sorted({tr.stats.channel for tr in st}) == ["DPE", "DPN", "DPZ"]       # X->N, Y->E, 250 Hz
-    raw = dl.read_dld(NODES / "453038428" / "seis000Z.DLD", starttime="2024-10-08T02:31:20",
-                      endtime="2024-10-08T02:31:29.996")[0]
-    m = read(str(next((tmp_path / "MSEED").rglob("*38428..DPZ*.mseed"))))[0]
-    s = read(str(next((tmp_path / "SEGY").rglob("*38428..DPZ*.sgy"))), format="SEGY")[0]
+        assert sorted({tr.stats.channel for tr in st}) == ["DPE", "DPN", "DPZ"]   # 500 sps
+    raw = dl.read_dld(_dld("453010077", "seis000Z"), starttime="2023-03-31T01:40:00",
+                      endtime="2023-03-31T01:40:19.998")[0]
+    m = read(str(next((tmp_path / "MSEED").rglob("*10077..DPZ*.mseed"))))[0]
+    s = read(str(next((tmp_path / "SEGY").rglob("*10077..DPZ*.sgy"))), format="SEGY")[0]
     assert m.stats.starttime == s.stats.starttime == raw.stats.starttime
-    assert np.array_equal(m.data, -raw.data) and np.array_equal(s.data, m.data)   # polarity flipped
-    inv = wf.build_inventory(sel, stream=st, response="auspass")                 # 18 dB gain included
-    sens = inv[0][0][0].response.instrument_sensitivity.value
-    assert sens == pytest.approx(255455695.9 * 10 ** (18 / 20), rel=1e-3)
+    assert np.array_equal(m.data, -raw.data) and np.array_equal(s.data, m.data)
+    inv = wf.build_inventory(sel, stream=st, response="auspass")                    # 0 dB
+    assert inv[0][0][0].response.instrument_sensitivity.value == pytest.approx(255455695.9, rel=1e-3)
+
+
+def test_pulse_rate_is_fixed_1000():
+    """PULSE_*.WAV is 1000 sps even when the node records at 500 sps."""
+    pytest.importorskip("scipy")
+    import smartsolo_node as sn
+    p = sn.analyse_pulse_folder(next((BT / "453009194").glob("*")))
+    assert ((p["f0_hz"] > 4.7) & (p["f0_hz"] < 5.3)).all()

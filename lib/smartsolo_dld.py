@@ -6,8 +6,8 @@ Read SmartSolo raw ``.DLD`` data files (``seis000X.DLD``, ``seis000Y.DLD``,
 ``seis000Z.DLD`` ...) directly into ObsPy, without exporting with SoloLite.
 
 The format is proprietary and undocumented; this reader is based on
-reverse-engineering files from IGU-16HR 3C nodes with firmware V1.0.8,
-V1.1.2 and V1.1.4 (250, 500 and 1000 samples/s). What is known:
+reverse-engineering files from IGU-16HR 3C nodes with firmware V1.0.5,
+V1.0.8 and V1.1.2 (250, 500 and 1000 samples/s). What is known:
 
 File layout
 -----------
@@ -24,26 +24,27 @@ One file per component (X, Y, Z) and recording segment::
 Time tag (72 bytes, repeated after every 1000 samples)::
 
     +0   int32   flag (always 0 so far)
-    +4   int64   tick, ms; +1000 per tag at 1000 sps, +4000 at 250 sps
-    +12  char[11] "HHMMSS.00"  UTC time (whole seconds)
+    +4   int64   tick, ms; +1000 per tag at 1000 sps, +2000 at 500, +4000 at 250
+    +12  char[11] "HHMMSS.00"  UTC time as text (whole seconds)
     +23  char[9]  "YYYYMMDD"   UTC date
     +32  float64 latitude  (deg)
     +40  int32   small signed value, mostly 0/±1 (probably clock phase error)
-    +44  int32   0, then counts up by 100 per second near the end of a file
+    +44  int32   time since the last GPS synchronisation, 10 ms units
     +48  float64 longitude (deg)
-    +56  char[16] GPS time of week, ms, as text (whole seconds)
+    +56  char[16] GPS time of week of the next GPS pulse, ms, as text
 
 * The sample rate is 1000 samples / (tick difference between tags).
-* The header start/end times equal the first/last tag times.
-* Tag times are whole UTC seconds. The int64 tick is not a linear clock
-  across dates (its absolute value can't be mapped to UTC), so only its
-  differences are used.
-* **Timing convention (to verify!)**: by default a tag is taken as the time
-  of the *first sample of the block before it* (``tag_marks="block_start"``),
-  so the first sample of the file is at the header start time and the file
-  covers [start, end + one block). The alternative ``"block_end"`` shifts
-  every sample one block (1-4 s) earlier. Compare one file with a SoloLite
-  MiniSEED export of the same data (``compare_with_export``) to settle this.
+* **Tag time** (``time_source="tow"``, default): GPS week + TOW - 1 s -
+  (GPS-UTC). The text time (``"label"``) is 2 s late until the receiver has
+  learned the leap seconds and then jumps back 2 s; TOW is continuous and
+  consistent between nodes (see docs/FINDINGS.md).
+* **Block convention (to verify!)**: by default a tag is taken as the time
+  of the *first sample of the block before it* (``tag_marks="block_start"``).
+  The alternative ``"block_end"`` shifts every sample one block (1-4 s)
+  earlier. Compare one file with a SoloLite MiniSEED export
+  (``compare_with_export``) to settle this.
+* The header position/altitude are written when the file is closed (after
+  any move); use the tag positions for the installed position.
 * Data are raw ADC counts **including the preamp gain** (0-36 dB, from the
   log ``Channel N Gain``) and with the raw SmartSolo polarity (see
   ``smartsolo_waveforms.extract_waveforms(invert_polarity=...)``).
@@ -83,6 +84,29 @@ __all__ = [
 ]
 
 DLD_MAGIC = b"DTCCSZ-TEC-FTS"
+
+# Package-wide defaults (can be changed: smartsolo_dld.DEFAULTS["time_source"] = "label")
+DEFAULTS = {"time_source": "tow", "tag_marks": "block_start"}
+
+GPS_EPOCH = pd.Timestamp("1980-01-06", tz="UTC")
+# GPS - UTC leap seconds (date from which the value applies)
+_LEAPS = [("1999-01-01", 13), ("2006-01-01", 14), ("2009-01-01", 15), ("2012-07-01", 16),
+          ("2015-07-01", 17), ("2017-01-01", 18)]
+
+
+def gps_utc_offset(t) -> int:
+    """GPS - UTC in seconds at time ``t`` (18 since 2017-01-01)."""
+    t = pd.Timestamp(t)
+    t = t.tz_localize("UTC") if t.tzinfo is None else t
+    off = 13
+    for d, v in _LEAPS:
+        if t >= pd.Timestamp(d, tz="UTC"):
+            off = v
+    return off
+
+
+def _opt(name, value):
+    return DEFAULTS[name] if value is None else value
 HEADER_SIZE = 512
 TAG_SIZE = 72
 _TAG_RE = re.compile(rb"\d{6}\.\d\d\x00\x00\d{8}\x00")
@@ -150,6 +174,7 @@ def read_dld_header(path) -> dict:
         "component": m.group(2).upper() if m else "",
         "file_index": int(m.group(1)) if m else None,
         "unknown_0x060": struct.unpack_from("<2i", h, 0x60),
+        "leap_seconds": struct.unpack_from("<i", h, 0x104)[0],   # 0 = receiver did not know them yet
         "unknown_0x100": struct.unpack_from("<7i", h, 0x100),
         "unknown_0x120": struct.unpack_from("<4i", h, 0x120),
         "file_size": path.stat().st_size,
@@ -172,7 +197,7 @@ def _layout(buf: bytes):
     return block, period, n
 
 
-def _tags_from_buffer(buf, block, period, n) -> pd.DataFrame:
+def _tags_from_buffer(buf, block, period, n, time_source=None) -> pd.DataFrame:
     rows = []
     for k in range(n):
         p = HEADER_SIZE + k * period + block
@@ -185,11 +210,43 @@ def _tags_from_buffer(buf, block, period, n) -> pd.DataFrame:
         tow = _cstr(buf[p + 56:p + 72])
         rows.append((k, p, flag, tick, _utc(d, t), lat, lon, i1, i2,
                      int(tow) if tow.isdigit() else np.nan))
-    return pd.DataFrame(rows, columns=["block", "offset", "flag", "tick_ms", "time", "latitude",
-                                       "longitude", "phase_error", "counter", "gps_tow_ms"])
+    df = pd.DataFrame(rows, columns=["block", "offset", "flag", "tick_ms", "time_label", "latitude",
+                                     "longitude", "phase_error", "counter", "gps_tow_ms"])
+    df["time_tow"] = _tow_to_utc(df["time_label"], df["gps_tow_ms"])
+    src = _opt("time_source", time_source)
+    if src == "tow" and df["time_tow"].notna().all():
+        df["time"] = df["time_tow"]
+    else:
+        df["time"] = df["time_label"]
+    df["label_minus_tow_s"] = (df["time_label"] - df["time_tow"]).dt.total_seconds()
+    return df
 
 
-def read_dld_tags(path) -> pd.DataFrame:
+def _tow_to_utc(label: pd.Series, tow_ms: pd.Series) -> pd.Series:
+    """
+    UTC of each tag from the GPS time of week: GPS week (from the label date)
+    + TOW - 1 s - (GPS-UTC). The -1 s: TOW is the time of the *next* GPS
+    pulse (as in u-blox TIM-TP); with it, labels written after the receiver
+    knows the leap seconds agree exactly with TOW (see docs/FINDINGS.md).
+    """
+    out = []
+    for lab, tow in zip(label, tow_ms):
+        if pd.isna(lab) or pd.isna(tow):
+            out.append(pd.NaT)
+            continue
+        leap = gps_utc_offset(lab)
+        wk = np.floor(((lab - GPS_EPOCH).total_seconds() + leap) / 604800)
+        t = GPS_EPOCH + pd.Timedelta(seconds=wk * 604800 + tow / 1000.0 - 1 - leap)
+        # label and TOW near a week boundary: pick the week that puts t next to the label
+        while (t - lab).total_seconds() > 302400:
+            t -= pd.Timedelta(days=7)
+        while (lab - t).total_seconds() > 302400:
+            t += pd.Timedelta(days=7)
+        out.append(t)
+    return pd.Series(pd.to_datetime(out, utc=True), index=label.index)
+
+
+def read_dld_tags(path, time_source=None) -> pd.DataFrame:
     """
     All time tags of a DLD file: ``block, offset, flag, tick_ms, time`` (UTC),
     ``latitude, longitude, phase_error`` (probably), ``counter`` and
@@ -197,7 +254,7 @@ def read_dld_tags(path) -> pd.DataFrame:
     """
     buf = Path(path).read_bytes()
     block, period, n = _layout(buf)
-    return _tags_from_buffer(buf, block, period, n)
+    return _tags_from_buffer(buf, block, period, n, time_source)
 
 
 # --------------------------------------------------------------------------- #
@@ -235,7 +292,7 @@ def _sampling_rate(tags: pd.DataFrame, block_samples: int) -> float:
     return block_samples / (step / 1000.0)
 
 
-def scan_dld(path, tag_marks: str = "block_start") -> list[dict]:
+def scan_dld(path, tag_marks: str | None = None, time_source: str | None = None) -> list[dict]:
     """
     Cheap description of a DLD file for indexing: one dict per continuous
     segment with ``serial, component, starttime, endtime, sampling_rate,
@@ -244,7 +301,8 @@ def scan_dld(path, tag_marks: str = "block_start") -> list[dict]:
     hdr = read_dld_header(path)
     buf = Path(path).read_bytes()
     block, period, n = _layout(buf)
-    tags = _tags_from_buffer(buf, block, period, n)
+    tags = _tags_from_buffer(buf, block, period, n, time_source)
+    tag_marks = _opt("tag_marks", tag_marks)
     ns = block // 3
     sr = _sampling_rate(tags, ns)
     out = []
@@ -257,8 +315,9 @@ def scan_dld(path, tag_marks: str = "block_start") -> list[dict]:
     return out
 
 
-def read_dld(path, starttime=None, endtime=None, tag_marks: str = "block_start",
-             headonly: bool = False, station: str | None = None, network: str = ""):
+def read_dld(path, starttime=None, endtime=None, tag_marks: str | None = None,
+             headonly: bool = False, station: str | None = None, network: str = "",
+             time_source: str | None = None):
     """
     Read one DLD file into an ObsPy Stream (one Trace per gap-free segment).
 
@@ -268,6 +327,10 @@ def read_dld(path, starttime=None, endtime=None, tag_marks: str = "block_start",
         Only decode the blocks needed for this window (then trimmed).
     tag_marks : "block_start" (default) or "block_end"
         Timing convention, see module docstring.
+    time_source : "tow" (default) or "label"
+        Tag times from the GPS time of week (continuous, consistent between
+        nodes) or from the HHMMSS/YYYYMMDD text (can be 2 s off before the
+        receiver knows the leap seconds, and then jumps).
     headonly : bool
         Traces without data (stats only).
     station, network : str
@@ -285,7 +348,8 @@ def read_dld(path, starttime=None, endtime=None, tag_marks: str = "block_start",
     hdr = read_dld_header(path)
     buf = path.read_bytes()
     block, period, n = _layout(buf)
-    tags = _tags_from_buffer(buf, block, period, n)
+    tags = _tags_from_buffer(buf, block, period, n, time_source)
+    tag_marks = _opt("tag_marks", tag_marks)
     ns = block // 3
     sr = _sampling_rate(tags, ns)
 

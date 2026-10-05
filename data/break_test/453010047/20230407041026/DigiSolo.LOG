@@ -1,0 +1,1490 @@
+<00003,00101,00029,00005,00009,00000,00001>
+
+[DeviceInfo00001]
+BootReason = 0087
+Firmware Version = V1.0.5.6kp
+Serial Number = 453010047
+BootLoader Version = V1.0.1.5
+Script Name = script
+Project Name = UTASTesting
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/02/23"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 0
+Channel 2 Gain = 0
+Channel 3 Gain = 0
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 0
+
+Ch1 Resistance = 1.7446
+Ch1 Resonate Freq = 4.9864
+Ch1 Damping = 0.7215
+Ch1 Sensitivity = 76.9416
+Ch1 RMS Noise = 54.3877
+Ch1 Spread Noise = 300.6883
+
+Ch2 Resistance = 1.7634
+Ch2 Resonate Freq = 4.8666
+Ch2 Damping = 0.7129
+Ch2 Sensitivity = 75.8048
+Ch2 RMS Noise = 1.1498
+Ch2 Spread Noise = 263.4341
+
+Ch3 Resistance = 1.7572
+Ch3 Resonate Freq = 5.4737
+Ch3 Damping = 0.3850
+Ch3 Sensitivity = 87.5347
+Ch3 RMS Noise = 1.5173
+Ch3 Spread Noise = 941.9504
+
+SD Manufacturer ID = 0xad
+SD OEM_Application ID = 0x4c53
+SD Product Name = "23XLG"
+SD Production Revision = 72
+SD Production SN = 214
+SD Manufacture Date = 0x0141
+
+
+[BatteryPowerOnStop]
+
+[DeviceInfo00002]
+BootReason = 0300
+Firmware Version = V1.0.5.6kp
+Serial Number = 453010047
+BootLoader Version = V1.0.1.5
+Boot RTC ="2016/01/22,23:21:48"
+Script Name = script
+Project Name = UTASTesting
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/02/23"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+Existing DATA Segments = 0
+Starting DATA Segment# = 0
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 0
+Channel 2 Gain = 0
+Channel 3 Gain = 0
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 0
+
+Ch1 Resistance = 1.7267
+Ch1 Resonate Freq = 4.9694
+Ch1 Damping = 0.7109
+Ch1 Sensitivity = 76.7290
+Ch1 RMS Noise = 1.1888
+Ch1 Spread Noise = 4088.8313
+
+Ch2 Resistance = 1.7356
+Ch2 Resonate Freq = 4.5889
+Ch2 Damping = 0.5952
+Ch2 Sensitivity = 69.5312
+Ch2 RMS Noise = 1.1460
+Ch2 Spread Noise = 62897.0977
+
+Ch3 Resistance = 1.7484
+Ch3 Resonate Freq = 5.2560
+Ch3 Damping = 0.5873
+Ch3 Sensitivity = 71.7252
+Ch3 RMS Noise = 1.1605
+Ch3 Spread Noise = 144273.9531
+
+GPS Lock Time = "2023/03/31,01:28:37"
+GPS Tick = 40
+Satellite Number = 08
+GPS Strength     = "43,38,38,35"
+Satellite ID     = "10, 1,21, 8"
+Calendar Reference = 2023/03/31,01:28 <-> 2023/02/23,00:00
+Wait Time to Work = 0(0x00000000)
+Voltage = 7.5723
+Free TF Memory = 30537
+Sensor Type = TMPx75
+Booting Temperature = 18.9375
+Upper Resistance Limit = 1905, 1866.9
+Lower Resistance Limit = 1640, 1607.2
+Booting eCompass North = 120.817
+Booting Tilted Angle =   4.128
+Booting Roll Angle   = -4.012
+Booting Pitch Angle  = -0.973
+Geophone Test Passed = 1
+Sync Delay = 127.8439
+Sync Count = 1
+
+[Notify00001]
+UTC Time = "2023/03/31,01:28:45"
+Start Acquisition FileName = "Seis000.DLD"
+
+[GPS00001]
+GPS Status = GPS Cycle Off
+GPS Tick = 82
+UTC Time = "2023/03/31,01:28:45"
+DAC Value = 2064
+ADC Sync Value = 2907,16
+Phase Error = 1
+Max Phase Error = 1
+
+[GPS00002]
+GPS Status = GPS Synchronization
+UTC Time = "2023/03/31,01:36:21"
+Leap Second = 0
+eCompass North = 121.724
+Tilted Angle =   3.956
+Roll Angle   = -3.806
+Pitch Angle  = -1.079
+GPS Power = OFF
+Latest Fix UTC Time = "2023/03/31,01:28:55"
+Satellite Number = 08
+GPS Strength     = "46,43,40,37,37,34,33,32"
+Satellite ID     = "32,10, 1,22,28,31, 8,21"
+Longitude = 147.329098500
+Latitude   = -42.902638333
+Altitude   = 32.1
+RTC Time = "2023/03/31,01:36:24"
+
+[GPS00003]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/03/31,01:36:45"
+
+[GPS00004]
+GPS Status = GPS Cycle Off
+GPS Tick = 66
+UTC Time = "2023/03/31,01:37:57"
+DAC Value = 2066
+ADC Sync Value = 2907,23
+Phase Error = 25
+Max Phase Error = 25
+
+[Temperature00001]
+UTC Time = "2023/03/31,01:38:21"
+Temperature = 19.4375
+
+[GPS00005]
+GPS Status = GPS Synchronization
+UTC Time = "2023/03/31,01:44:21"
+Leap Second = 0
+eCompass North = 120.887
+Tilted Angle =   3.945
+Roll Angle   = -3.806
+Pitch Angle  = -1.037
+GPS Power = OFF
+Latest Fix UTC Time = "2023/03/31,01:38:01"
+Satellite Number = 08
+GPS Strength     = "31,31,29,28,27,27,26,23"
+Satellite ID     = " 3,21,28,32,10,22, 8, 1"
+Longitude = 147.329149833
+Latitude   = -42.902653500
+Altitude   = 31.2
+RTC Time = "2023/03/31,01:44:24"
+
+[GPS00006]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/03/31,01:45:57"
+
+[GPS00007]
+GPS Status = GPS Cycle Off
+GPS Tick = 64
+UTC Time = "2023/03/31,01:47:09"
+DAC Value = 2062
+ADC Sync Value = 2907,32
+Phase Error = 32
+Max Phase Error = 32
+
+[Temperature00002]
+UTC Time = "2023/03/31,01:48:21"
+Temperature = 18.5625
+
+[GPS00008]
+GPS Status = GPS Synchronization
+UTC Time = "2023/03/31,01:52:21"
+Leap Second = 0
+eCompass North = 120.841
+Tilted Angle =   4.048
+Roll Angle   = -3.913
+Pitch Angle  = -1.035
+GPS Power = OFF
+Latest Fix UTC Time = "2023/03/31,01:47:05"
+Satellite Number = 08
+GPS Strength     = "48,47,39,37,37,32,29,27"
+Satellite ID     = "32,10, 1, 3, 8,28,31,22"
+Longitude = 147.329122333
+Latitude   = -42.902662167
+Altitude   = 24.1
+RTC Time = "2023/03/31,01:52:25"
+
+[GPS00009]
+GPS Status = GPS Cycle On
+GPS Tick = 474
+UTC Time = "2023/03/31,01:55:09"
+
+[GPS00010]
+GPS Status = GPS Cycle Off
+GPS Tick = 73
+UTC Time = "2023/03/31,01:56:21"
+DAC Value = 2060
+ADC Sync Value = 2907,36
+Phase Error = 6
+Max Phase Error = 32
+
+[Temperature00003]
+UTC Time = "2023/03/31,01:58:21"
+Temperature = 17.9375
+
+[Battery00001]
+UTC Time = "2023/03/31,01:58:21"
+Voltage = 7.5873
+
+[DeviceInfo00003]
+BootReason = 0300
+Firmware Version = V1.0.5.6kp
+Serial Number = 453010047
+BootLoader Version = V1.0.1.5
+Boot RTC ="2023/04/06,23:46:02"
+Script Name = script
+Project Name = UTASTesting
+Device Type = IGU-16HR 3C 5Hz
+Start Date = "2023/02/23"
+Start Time = "00:00:00"
+End Time = "00:00:00"
+FIFO Storage MODE = 1
+Existing DATA Segments = 1
+Starting DATA Segment# = 1
+GPS Power Mode = CycleOff
+Channel Number = 3
+Channel 1 Type = 98
+Channel 2 Type = 98
+Channel 3 Type = 98
+Channel 4 Type = 97
+Sample Rate = 200
+Channel 1 Gain = 0
+Channel 2 Gain = 0
+Channel 3 Gain = 0
+Channel 4 Gain = 0
+Anti-alias Filter Type = Linear
+Low Cutter Filter = 0
+
+Ch1 Resistance = 1.7213
+Ch1 Resonate Freq = 4.9996
+Ch1 Damping = 0.7131
+Ch1 Sensitivity = 76.9020
+Ch1 RMS Noise = 1.1394
+Ch1 Spread Noise =  40.2483
+
+Ch2 Resistance = 1.7382
+Ch2 Resonate Freq = 4.9907
+Ch2 Damping = 0.6746
+Ch2 Sensitivity = 76.2969
+Ch2 RMS Noise = 1.1672
+Ch2 Spread Noise =  96.7399
+
+Ch3 Resistance = 1.7321
+Ch3 Resonate Freq = 4.9902
+Ch3 Damping = 0.7065
+Ch3 Sensitivity = 76.0510
+Ch3 RMS Noise = 1.1342
+Ch3 Spread Noise =  39.4800
+
+GPS Lock Time = "2023/04/06,23:47:08"
+GPS Tick = 49
+Satellite Number = 10
+GPS Strength     = "48,47,45,44,43,43,42,41,41,40"
+Satellite ID     = "32,10,22,28,18,21,27, 8,23,24"
+Calendar Reference = 2023/04/06,23:46 <-> 2023/02/23,00:00
+Wait Time to Work = 0(0x00000000)
+Voltage = 7.4804
+Free TF Memory = 30528
+Sensor Type = TMPx75
+Booting Temperature = 17.0625
+Upper Resistance Limit = 1905, 1855.1
+Lower Resistance Limit = 1640, 1597.0
+Booting eCompass North =  95.996
+Booting Tilted Angle =   3.055
+Booting Roll Angle   = 0.000
+Booting Pitch Angle  = 3.055
+Geophone Test Passed = 1
+Sync Delay = 127.8436
+Sync Count = 1
+
+[Notify00001]
+UTC Time = "2023/04/06,23:47:17"
+Start Acquisition FileName = "Seis001.DLD"
+
+[GPS00011]
+GPS Status = GPS Cycle Off
+GPS Tick = 98
+UTC Time = "2023/04/06,23:47:41"
+DAC Value = 2058
+ADC Sync Value = 2907,20
+Phase Error = 1
+Max Phase Error = 1
+
+[GPS00012]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/06,23:54:53"
+Leap Second = 0
+eCompass North =  95.694
+Tilted Angle =   2.880
+Roll Angle   = -0.230
+Pitch Angle  = 2.871
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/06,23:47:35"
+Satellite Number = 10
+GPS Strength     = "48,47,45,43,42,42,42,42,42,40"
+Satellite ID     = "32,10,22,21, 8,18,23,27,28,24"
+Longitude = 147.322542000
+Latitude   = -42.866367833
+Altitude   = 98.2
+RTC Time = "2023/04/06,23:54:56"
+
+[GPS00013]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/06,23:55:41"
+
+[GPS00014]
+GPS Status = GPS Cycle Off
+GPS Tick = 48
+UTC Time = "2023/04/06,23:56:27"
+DAC Value = 2057
+ADC Sync Value = 2907,27
+Phase Error = 2
+Max Phase Error = 2
+
+[Temperature00004]
+UTC Time = "2023/04/06,23:56:51"
+Temperature = 17.6875
+
+[GPS00015]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:02:51"
+Leap Second = 0
+eCompass North =  96.606
+Tilted Angle =   2.945
+Roll Angle   = -0.173
+Pitch Angle  = 2.940
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/06,23:56:21"
+Satellite Number = 10
+GPS Strength     = "48,47,46,44,43,42,42,41,41,40"
+Satellite ID     = "32,10,22,28,21,18,27, 8,23,50"
+Longitude = 147.322540333
+Latitude   = -42.866363833
+Altitude   = 96.7
+RTC Time = "2023/04/07,00:02:57"
+
+[GPS00016]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:04:27"
+
+[GPS00017]
+GPS Status = GPS Cycle Off
+GPS Tick = 52
+UTC Time = "2023/04/07,00:05:15"
+DAC Value = 2060
+ADC Sync Value = 2907,32
+Phase Error = 24
+Max Phase Error = 24
+
+[Temperature00005]
+UTC Time = "2023/04/07,00:06:51"
+Temperature = 17.8125
+
+[GPS00018]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:10:51"
+Leap Second = 0
+eCompass North =  95.752
+Tilted Angle =   3.055
+Roll Angle   = -0.230
+Pitch Angle  = 3.046
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:05:13"
+Satellite Number = 10
+GPS Strength     = "48,47,46,43,43,43,42,41,41,40"
+Satellite ID     = "32,10,22,21,23,28, 1,18,27, 8"
+Longitude = 147.322561167
+Latitude   = -42.866340000
+Altitude   = 93.0
+RTC Time = "2023/04/07,00:11:06"
+
+[GPS00019]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:13:15"
+
+[GPS00020]
+GPS Status = GPS Cycle Off
+GPS Tick = 70
+UTC Time = "2023/04/07,00:14:27"
+DAC Value = 2059
+ADC Sync Value = 2907,38
+Phase Error = 30
+Max Phase Error = 30
+
+[Battery00002]
+UTC Time = "2023/04/07,00:16:51"
+Voltage = 7.4918
+
+[Temperature00006]
+UTC Time = "2023/04/07,00:16:51"
+Temperature = 17.8125
+
+[GPS00021]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:19:15"
+Leap Second = 0
+eCompass North =  95.823
+Tilted Angle =   2.993
+Roll Angle   = -0.286
+Pitch Angle  = 2.980
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:14:23"
+Satellite Number = 10
+GPS Strength     = "47,46,46,43,42,42,42,41,41,40"
+Satellite ID     = "32,10,22,21, 1,27,28, 8,23,50"
+Longitude = 147.322560000
+Latitude   = -42.866342667
+Altitude   = 92.4
+RTC Time = "2023/04/07,00:19:18"
+
+[GPS00022]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:22:27"
+
+[GPS00023]
+GPS Status = GPS Cycle Off
+GPS Tick = 56
+UTC Time = "2023/04/07,00:23:15"
+DAC Value = 2058
+ADC Sync Value = 2907,44
+Phase Error = 6
+Max Phase Error = 30
+
+[Temperature00007]
+UTC Time = "2023/04/07,00:27:15"
+Temperature = 17.8125
+
+[GPS00024]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:27:15"
+Leap Second = 0
+eCompass North =  96.252
+Tilted Angle =   3.166
+Roll Angle   = -0.230
+Pitch Angle  = 3.158
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:23:19"
+Satellite Number = 10
+GPS Strength     = "46,45,45,44,43,42,42,41,40,40"
+Satellite ID     = "32,10,22,31,21, 1,27,28, 8,50"
+Longitude = 147.322566167
+Latitude   = -42.866343000
+Altitude   = 93.0
+RTC Time = "2023/04/07,00:27:18"
+
+[GPS00025]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:31:15"
+
+[Memory00001]
+UTC Time = "2023/04/07,00:32:27"
+Total Memory     = 30545
+Available Memory = 30516
+Used Memory      = 29
+
+[GPS00026]
+GPS Status = GPS Cycle Off
+GPS Tick = 62
+UTC Time = "2023/04/07,00:32:27"
+DAC Value = 2058
+ADC Sync Value = 2907,51
+Phase Error = 13
+Max Phase Error = 30
+
+[GPS00027]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:35:15"
+Leap Second = 0
+eCompass North =  96.278
+Tilted Angle =   3.279
+Roll Angle   = 0.057
+Pitch Angle  = 3.279
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:32:21"
+Satellite Number = 10
+GPS Strength     = "47,46,45,44,44,43,42,41,41,40"
+Satellite ID     = "32,21,22,10,31,27, 1, 8,28,50"
+Longitude = 147.322565500
+Latitude   = -42.866342833
+Altitude   = 92.6
+RTC Time = "2023/04/07,00:35:30"
+
+[Temperature00008]
+UTC Time = "2023/04/07,00:37:15"
+Temperature = 17.9375
+
+[GPS00028]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:40:27"
+
+[GPS00029]
+GPS Status = GPS Cycle Off
+GPS Tick = 80
+UTC Time = "2023/04/07,00:41:39"
+DAC Value = 2059
+ADC Sync Value = 2907,60
+Phase Error = 17
+Max Phase Error = 30
+
+[GPS00030]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:43:39"
+Leap Second = 0
+eCompass North =  97.116
+Tilted Angle =   3.228
+Roll Angle   = -0.287
+Pitch Angle  = 3.215
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:41:41"
+Satellite Number = 10
+GPS Strength     = "47,46,45,44,44,43,42,42,42,40"
+Satellite ID     = "32,21,10,22,31, 1, 8,27,28,50"
+Longitude = 147.322556667
+Latitude   = -42.866343833
+Altitude   = 93.0
+RTC Time = "2023/04/07,00:43:42"
+
+[Battery00003]
+UTC Time = "2023/04/07,00:46:51"
+Voltage = 7.4891
+
+[Temperature00009]
+UTC Time = "2023/04/07,00:47:15"
+Temperature = 18.0625
+
+[GPS00031]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:49:39"
+
+[GPS00032]
+GPS Status = GPS Cycle Off
+GPS Tick = 48
+UTC Time = "2023/04/07,00:50:27"
+DAC Value = 2060
+ADC Sync Value = 2907,67
+Phase Error = 1
+Max Phase Error = 30
+
+[GPS00033]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,00:51:39"
+Leap Second = 18
+eCompass North =  96.004
+Tilted Angle =   2.983
+Roll Angle   = 0.000
+Pitch Angle  = 2.983
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:50:29"
+Satellite Number = 09
+GPS Strength     = "48,46,44,44,43,43,42,42,42"
+Satellite ID     = "32,21,10,22, 8,28, 1,27,31"
+Longitude = 147.322558167
+Latitude   = -42.866342167
+Altitude   = 93.9
+RTC Time = "2023/04/07,00:51:54"
+
+[Temperature00010]
+UTC Time = "2023/04/07,00:57:39"
+Temperature = 17.9375
+
+[GPS00034]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,00:58:27"
+
+[GPS00035]
+GPS Status = GPS Cycle Off
+GPS Tick = 50
+UTC Time = "2023/04/07,00:59:15"
+DAC Value = 2060
+ADC Sync Value = 2907,73
+Phase Error = 18
+Max Phase Error = 30
+
+[GPS00036]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:00:03"
+Leap Second = 18
+eCompass North =  96.657
+Tilted Angle =   3.220
+Roll Angle   = -0.229
+Pitch Angle  = 3.212
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,00:59:19"
+Satellite Number = 09
+GPS Strength     = "41,39,36,36,35,35,35,35,33"
+Satellite ID     = "32,21, 8,31, 1,10,22,28,50"
+Longitude = 147.322556000
+Latitude   = -42.866347500
+Altitude   = 95.0
+RTC Time = "2023/04/07,01:00:06"
+
+[GPS00037]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,01:07:15"
+
+[Temperature00011]
+UTC Time = "2023/04/07,01:07:39"
+Temperature = 17.7500
+
+[GPS00038]
+GPS Status = GPS Cycle Off
+GPS Tick = 54
+UTC Time = "2023/04/07,01:08:03"
+DAC Value = 2057
+ADC Sync Value = 2907,78
+Phase Error = 23
+Max Phase Error = 30
+
+[GPS00039]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:08:03"
+Leap Second = 18
+eCompass North =  96.467
+Tilted Angle =   3.044
+Roll Angle   = -0.286
+Pitch Angle  = 3.031
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,01:08:13"
+Satellite Number = 08
+GPS Strength     = "48,47,44,44,44,44,43,43"
+Satellite ID     = "32,21, 8,22,28,31, 1,10"
+Longitude = 147.322555000
+Latitude   = -42.866347167
+Altitude   = 95.3
+RTC Time = "2023/04/07,01:08:18"
+
+[GPS00040]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,01:16:03"
+
+[GPS00041]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:16:03"
+Leap Second = 18
+eCompass North =  96.596
+Tilted Angle =   3.172
+Roll Angle   = -0.230
+Pitch Angle  = 3.164
+GPS Power = ON
+GPS Fix = Off
+Latest Fix UTC Time = "2023/04/07,01:08:13"
+Satellite Number = 08
+GPS Strength     = "48,47,44,44,44,44,43,43"
+Satellite ID     = "32,21, 8,22,28,31, 1,10"
+Longitude = 147.322555000
+Latitude   = -42.866347167
+Altitude   = 95.3
+RTC Time = "2023/04/07,01:16:18"
+
+[GPS00042]
+GPS Status = GPS Cycle Off
+GPS Tick = 64
+UTC Time = "2023/04/07,01:17:15"
+DAC Value = 2058
+ADC Sync Value = 2907,83
+Phase Error = 24
+Max Phase Error = 30
+
+[Battery00004]
+UTC Time = "2023/04/07,01:17:15"
+Voltage = 7.4920
+
+[Temperature00012]
+UTC Time = "2023/04/07,01:17:39"
+Temperature = 17.5625
+
+[Memory00002]
+UTC Time = "2023/04/07,01:17:39"
+Total Memory     = 30545
+Available Memory = 30504
+Used Memory      = 41
+
+[GPS00043]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:24:27"
+Leap Second = 18
+eCompass North =  96.940
+Tilted Angle =   3.063
+Roll Angle   = -0.288
+Pitch Angle  = 3.049
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,01:17:17"
+Satellite Number = 08
+GPS Strength     = "48,47,44,44,44,44,43,43"
+Satellite ID     = "32,21, 1,10,28,31, 8,22"
+Longitude = 147.322560000
+Latitude   = -42.866347833
+Altitude   = 95.8
+RTC Time = "2023/04/07,01:24:30"
+
+[GPS00044]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,01:25:15"
+
+[GPS00045]
+GPS Status = GPS Cycle Off
+GPS Tick = 70
+UTC Time = "2023/04/07,01:26:27"
+DAC Value = 2056
+ADC Sync Value = 2907,91
+Phase Error = 5
+Max Phase Error = 30
+
+[Temperature00013]
+UTC Time = "2023/04/07,01:28:03"
+Temperature = 17.5000
+
+[GPS00046]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:32:27"
+Leap Second = 18
+eCompass North =  95.553
+Tilted Angle =   2.992
+Roll Angle   = 0.000
+Pitch Angle  = 2.992
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,01:26:27"
+Satellite Number = 08
+GPS Strength     = "48,46,45,44,44,43,42,42"
+Satellite ID     = "32,21,31, 1,28, 3, 8,10"
+Longitude = 147.322563000
+Latitude   = -42.866349500
+Altitude   = 95.5
+RTC Time = "2023/04/07,01:32:43"
+
+[GPS00047]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,01:34:27"
+
+[GPS00048]
+GPS Status = GPS Cycle Off
+GPS Tick = 74
+UTC Time = "2023/04/07,01:35:39"
+DAC Value = 2059
+ADC Sync Value = 2907,100
+Phase Error = 33
+Max Phase Error = 33
+
+[Temperature00014]
+UTC Time = "2023/04/07,01:38:03"
+Temperature = 17.5000
+
+[GPS00049]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:40:51"
+Leap Second = 18
+eCompass North =  96.561
+Tilted Angle =   3.118
+Roll Angle   = -0.115
+Pitch Angle  = 3.116
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,01:35:41"
+Satellite Number = 08
+GPS Strength     = "47,46,46,45,44,43,43,42"
+Satellite ID     = "32,21,31, 1,28, 3,22, 8"
+Longitude = 147.322564667
+Latitude   = -42.866348333
+Altitude   = 95.9
+RTC Time = "2023/04/07,01:40:54"
+
+[GPS00050]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,01:43:39"
+
+[GPS00051]
+GPS Status = GPS Cycle Off
+GPS Tick = 40
+UTC Time = "2023/04/07,01:44:27"
+DAC Value = 2056
+ADC Sync Value = 2907,105
+Phase Error = 26
+Max Phase Error = 33
+
+[Battery00005]
+UTC Time = "2023/04/07,01:47:15"
+Voltage = 7.4887
+
+[Temperature00015]
+UTC Time = "2023/04/07,01:48:03"
+Temperature = 17.5625
+
+[GPS00052]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:48:51"
+Leap Second = 18
+eCompass North =  96.112
+Tilted Angle =   2.885
+Roll Angle   = -0.287
+Pitch Angle  = 2.871
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,01:44:21"
+Satellite Number = 08
+GPS Strength     = "46,46,46,45,44,43,43,43"
+Satellite ID     = "21,31,32, 1,28, 3,10,22"
+Longitude = 147.322569667
+Latitude   = -42.866343667
+Altitude   = 94.9
+RTC Time = "2023/04/07,01:49:07"
+
+[GPS00053]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,01:52:27"
+
+[GPS00054]
+GPS Status = GPS Cycle Off
+GPS Tick = 78
+UTC Time = "2023/04/07,01:53:39"
+DAC Value = 2059
+ADC Sync Value = 2907,115
+Phase Error = 36
+Max Phase Error = 36
+
+[GPS00055]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,01:57:15"
+Leap Second = 18
+eCompass North =  96.315
+Tilted Angle =   3.094
+Roll Angle   = 0.000
+Pitch Angle  = 3.094
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,01:53:39"
+Satellite Number = 08
+GPS Strength     = "47,46,46,44,44,44,44,41"
+Satellite ID     = "21, 1,31, 3,22,28,32,10"
+Longitude = 147.322573333
+Latitude   = -42.866352500
+Altitude   = 94.9
+RTC Time = "2023/04/07,01:57:18"
+
+[Temperature00016]
+UTC Time = "2023/04/07,01:58:27"
+Temperature = 17.7500
+
+[GPS00056]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:01:39"
+
+[GPS00057]
+GPS Status = GPS Cycle Off
+GPS Tick = 58
+UTC Time = "2023/04/07,02:02:27"
+DAC Value = 2059
+ADC Sync Value = 2907,123
+Phase Error = 18
+Max Phase Error = 36
+
+[Memory00003]
+UTC Time = "2023/04/07,02:05:15"
+Total Memory     = 30545
+Available Memory = 30491
+Used Memory      = 54
+
+[GPS00058]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:05:15"
+Leap Second = 18
+eCompass North =  97.162
+Tilted Angle =   3.436
+Roll Angle   = -0.114
+Pitch Angle  = 3.434
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,02:02:37"
+Satellite Number = 10
+GPS Strength     = "47,46,46,45,43,43,43,42,42,40"
+Satellite ID     = "21, 1,31,22, 3,28,32,10,17,50"
+Longitude = 147.322579000
+Latitude   = -42.866357667
+Altitude   = 95.4
+RTC Time = "2023/04/07,02:05:30"
+
+[Temperature00017]
+UTC Time = "2023/04/07,02:08:27"
+Temperature = 18.3125
+
+[GPS00059]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:10:27"
+
+[GPS00060]
+GPS Status = GPS Cycle Off
+GPS Tick = 48
+UTC Time = "2023/04/07,02:11:15"
+DAC Value = 2062
+ADC Sync Value = 2907,129
+Phase Error = 11
+Max Phase Error = 36
+
+[GPS00061]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:13:39"
+Leap Second = 18
+eCompass North =  96.823
+Tilted Angle =   3.432
+Roll Angle   = -0.114
+Pitch Angle  = 3.430
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,02:11:25"
+Satellite Number = 10
+GPS Strength     = "48,46,45,45,44,43,42,42,42,41"
+Satellite ID     = "21, 1,22,31,28,10, 3, 4,17,32"
+Longitude = 147.322574167
+Latitude   = -42.866354833
+Altitude   = 95.0
+RTC Time = "2023/04/07,02:13:42"
+
+[Battery00006]
+UTC Time = "2023/04/07,02:17:15"
+Voltage = 7.4883
+
+[Temperature00018]
+UTC Time = "2023/04/07,02:18:27"
+Temperature = 18.8125
+
+[GPS00062]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:19:15"
+
+[GPS00063]
+GPS Status = GPS Cycle Off
+GPS Tick = 72
+UTC Time = "2023/04/07,02:20:27"
+DAC Value = 2060
+ADC Sync Value = 2907,138
+Phase Error = 13
+Max Phase Error = 36
+
+[GPS00064]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:21:39"
+Leap Second = 18
+eCompass North =  96.383
+Tilted Angle =   3.093
+Roll Angle   = -0.114
+Pitch Angle  = 3.091
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,02:20:37"
+Satellite Number = 10
+GPS Strength     = "48,46,45,45,44,44,42,42,42,41"
+Satellite ID     = "21, 1,22,31, 4,28, 3,17,32,10"
+Longitude = 147.322575333
+Latitude   = -42.866352500
+Altitude   = 94.5
+RTC Time = "2023/04/07,02:21:42"
+
+[Temperature00019]
+UTC Time = "2023/04/07,02:28:27"
+Temperature = 18.9375
+
+[GPS00065]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:28:27"
+
+[GPS00066]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:29:39"
+Leap Second = 18
+eCompass North =  96.299
+Tilted Angle =   3.269
+Roll Angle   = 0.000
+Pitch Angle  = 3.269
+GPS Power = ON
+GPS Fix = 3D
+Latest Fix UTC Time = "2023/04/07,02:29:43"
+Satellite Number = 11
+GPS Strength     = "46,46,46,44,44,43,43,41,41,39,38"
+Satellite ID     = " 1,21,22, 4,31, 3,28,17,32,50,10"
+Longitude = 147.322576167
+Latitude   = -42.866355333
+Altitude   = 94.5
+RTC Time = "2023/04/07,02:29:43"
+
+[GPS00067]
+GPS Status = GPS Cycle Off
+GPS Tick = 76
+UTC Time = "2023/04/07,02:29:39"
+DAC Value = 2064
+ADC Sync Value = 2907,148
+Phase Error = 46
+Max Phase Error = 46
+
+[GPS00068]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:37:39"
+
+[GPS00069]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:37:39"
+Leap Second = 18
+eCompass North =  96.149
+Tilted Angle =   3.277
+Roll Angle   = -0.172
+Pitch Angle  = 3.272
+GPS Power = ON
+GPS Fix = Off
+Latest Fix UTC Time = "2023/04/07,02:29:53"
+Satellite Number = 11
+GPS Strength     = "47,46,45,45,45,44,43,42,41,39,39"
+Satellite ID     = "21, 1, 4,22,31,28, 3,32,17,25,26"
+Longitude = 147.322577500
+Latitude   = -42.866354667
+Altitude   = 94.4
+RTC Time = "2023/04/07,02:37:54"
+
+[Temperature00020]
+UTC Time = "2023/04/07,02:38:51"
+Temperature = 18.8750
+
+[GPS00070]
+GPS Status = GPS Cycle Off
+GPS Tick = 86
+UTC Time = "2023/04/07,02:39:15"
+DAC Value = 2061
+ADC Sync Value = 2907,159
+Phase Error = 37
+Max Phase Error = 46
+
+[GPS00071]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:46:03"
+Leap Second = 18
+eCompass North =  96.005
+Tilted Angle =   2.994
+Roll Angle   = -0.230
+Pitch Angle  = 2.986
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,02:39:19"
+Satellite Number = 10
+GPS Strength     = "45,45,45,45,44,44,43,42,41,40"
+Satellite ID     = " 1,21,22,31, 3, 4,28,32,26,25"
+Longitude = 147.322578167
+Latitude   = -42.866349833
+Altitude   = 93.9
+RTC Time = "2023/04/07,02:46:06"
+
+[GPS00072]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:47:15"
+
+[Battery00007]
+UTC Time = "2023/04/07,02:47:15"
+Voltage = 7.4863
+
+[GPS00073]
+GPS Status = GPS Cycle Off
+GPS Tick = 74
+UTC Time = "2023/04/07,02:48:27"
+DAC Value = 2063
+ADC Sync Value = 2907,168
+Phase Error = 16
+Max Phase Error = 46
+
+[Temperature00021]
+UTC Time = "2023/04/07,02:48:51"
+Temperature = 18.5625
+
+[Memory00004]
+UTC Time = "2023/04/07,02:54:03"
+Total Memory     = 30545
+Available Memory = 30479
+Used Memory      = 66
+
+[GPS00074]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,02:54:03"
+Leap Second = 18
+eCompass North =  96.178
+Tilted Angle =   3.050
+Roll Angle   = -0.058
+Pitch Angle  = 3.049
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,02:48:33"
+Satellite Number = 09
+GPS Strength     = "46,45,45,45,45,45,44,44,42"
+Satellite ID     = " 1, 3,21,22,31,32, 4,28,26"
+Longitude = 147.322575667
+Latitude   = -42.866350167
+Altitude   = 95.4
+RTC Time = "2023/04/07,02:54:07"
+
+[GPS00075]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,02:56:27"
+
+[GPS00076]
+GPS Status = GPS Cycle Off
+GPS Tick = 64
+UTC Time = "2023/04/07,02:57:39"
+DAC Value = 2059
+ADC Sync Value = 2907,177
+Phase Error = 38
+Max Phase Error = 46
+
+[Temperature00022]
+UTC Time = "2023/04/07,02:59:15"
+Temperature = 18.5625
+
+[GPS00077]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:02:03"
+Leap Second = 18
+eCompass North =  95.855
+Tilted Angle =   2.985
+Roll Angle   = -0.115
+Pitch Angle  = 2.983
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,02:57:37"
+Satellite Number = 09
+GPS Strength     = "46,46,45,44,44,43,43,43,41"
+Satellite ID     = " 1, 3,31,21,32, 4,22,28,26"
+Longitude = 147.322579833
+Latitude   = -42.866348167
+Altitude   = 94.7
+RTC Time = "2023/04/07,03:02:18"
+
+[GPS00078]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:05:39"
+
+[GPS00079]
+GPS Status = GPS Cycle Off
+GPS Tick = 82
+UTC Time = "2023/04/07,03:06:51"
+DAC Value = 2062
+ADC Sync Value = 2907,188
+Phase Error = 43
+Max Phase Error = 46
+
+[Temperature00023]
+UTC Time = "2023/04/07,03:09:15"
+Temperature = 18.5625
+
+[GPS00080]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:10:27"
+Leap Second = 18
+eCompass North =  97.402
+Tilted Angle =   3.388
+Roll Angle   = -0.172
+Pitch Angle  = 3.383
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,03:06:59"
+Satellite Number = 09
+GPS Strength     = "46,46,45,44,43,43,42,41,39"
+Satellite ID     = " 1, 3,31,21, 4,28,22,26,50"
+Longitude = 147.322574000
+Latitude   = -42.866352333
+Altitude   = 94.8
+RTC Time = "2023/04/07,03:10:30"
+
+[GPS00081]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:14:51"
+
+[GPS00082]
+GPS Status = GPS Cycle Off
+GPS Tick = 50
+UTC Time = "2023/04/07,03:15:39"
+DAC Value = 2062
+ADC Sync Value = 2907,194
+Phase Error = 23
+Max Phase Error = 46
+
+[Battery00008]
+UTC Time = "2023/04/07,03:17:39"
+Voltage = 7.4873
+
+[GPS00083]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:18:27"
+Leap Second = 18
+eCompass North =  96.104
+Tilted Angle =   3.150
+Roll Angle   = -0.171
+Pitch Angle  = 3.145
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,03:15:49"
+Satellite Number = 09
+GPS Strength     = "46,45,45,43,42,42,41,41,40"
+Satellite ID     = " 3, 1,31,28, 4,21,22,26,50"
+Longitude = 147.322576167
+Latitude   = -42.866355000
+Altitude   = 94.1
+RTC Time = "2023/04/07,03:18:42"
+
+[Temperature00024]
+UTC Time = "2023/04/07,03:19:15"
+Temperature = 18.7500
+
+[GPS00084]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:23:39"
+
+[GPS00085]
+GPS Status = GPS Cycle Off
+GPS Tick = 50
+UTC Time = "2023/04/07,03:24:27"
+DAC Value = 2061
+ADC Sync Value = 2907,199
+Phase Error = 5
+Max Phase Error = 46
+
+[GPS00086]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:26:51"
+Leap Second = 18
+eCompass North =  96.905
+Tilted Angle =   3.280
+Roll Angle   = -0.172
+Pitch Angle  = 3.275
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,03:24:39"
+Satellite Number = 09
+GPS Strength     = "47,46,45,43,42,41,41,40,40"
+Satellite ID     = " 3,31, 1,21,28, 4,22,26,50"
+Longitude = 147.322572667
+Latitude   = -42.866343833
+Altitude   = 92.2
+RTC Time = "2023/04/07,03:26:54"
+
+[Temperature00025]
+UTC Time = "2023/04/07,03:29:39"
+Temperature = 19.0000
+
+[GPS00087]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:32:27"
+
+[GPS00088]
+GPS Status = GPS Cycle Off
+GPS Tick = 52
+UTC Time = "2023/04/07,03:33:39"
+DAC Value = 2064
+ADC Sync Value = 2907,206
+Phase Error = 26
+Max Phase Error = 46
+
+[GPS00089]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:34:51"
+Leap Second = 18
+eCompass North =  96.369
+Tilted Angle =   3.217
+Roll Angle   = -0.229
+Pitch Angle  = 3.208
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,03:33:31"
+Satellite Number = 10
+GPS Strength     = "47,45,42,42,42,41,41,41,41,40"
+Satellite ID     = " 3,31, 1,16,21, 4,22,26,28,50"
+Longitude = 147.322578000
+Latitude   = -42.866355667
+Altitude   = 94.6
+RTC Time = "2023/04/07,03:35:06"
+
+[Temperature00026]
+UTC Time = "2023/04/07,03:39:39"
+Temperature = 19.3125
+
+[Memory00005]
+UTC Time = "2023/04/07,03:39:39"
+Total Memory     = 30545
+Available Memory = 30467
+Used Memory      = 78
+
+[GPS00090]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:41:39"
+
+[GPS00091]
+GPS Status = GPS Cycle Off
+GPS Tick = 60
+UTC Time = "2023/04/07,03:42:27"
+DAC Value = 2063
+ADC Sync Value = 2907,214
+Phase Error = 11
+Max Phase Error = 46
+
+[GPS00092]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:43:15"
+Leap Second = 18
+eCompass North =  95.431
+Tilted Angle =   2.695
+Roll Angle   = -0.228
+Pitch Angle  = 2.686
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,03:42:31"
+Satellite Number = 10
+GPS Strength     = "46,45,43,43,42,42,42,41,40,39"
+Satellite ID     = " 3,31,16,21, 1, 4,22,26, 9,28"
+Longitude = 147.322573667
+Latitude   = -42.866358333
+Altitude   = 93.7
+RTC Time = "2023/04/07,03:43:19"
+
+[Battery00009]
+UTC Time = "2023/04/07,03:47:39"
+Voltage = 7.4899
+
+[Temperature00027]
+UTC Time = "2023/04/07,03:49:39"
+Temperature = 19.6250
+
+[GPS00093]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:50:27"
+
+[GPS00094]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:51:15"
+Leap Second = 18
+eCompass North =  96.115
+Tilted Angle =   3.056
+Roll Angle   = -0.287
+Pitch Angle  = 3.043
+GPS Power = ON
+GPS Fix = 3D
+Latest Fix UTC Time = "2023/04/07,03:51:19"
+Satellite Number = 10
+GPS Strength     = "46,45,44,44,43,42,42,42,42,41"
+Satellite ID     = " 3,31, 4, 9,21, 1,16,22,26, 6"
+Longitude = 147.322569833
+Latitude   = -42.866351667
+Altitude   = 93.5
+RTC Time = "2023/04/07,03:51:19"
+
+[GPS00095]
+GPS Status = GPS Cycle Off
+GPS Tick = 64
+UTC Time = "2023/04/07,03:51:39"
+DAC Value = 2065
+ADC Sync Value = 2907,222
+Phase Error = 33
+Max Phase Error = 46
+
+[GPS00096]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,03:59:15"
+Leap Second = 18
+eCompass North =  96.523
+Tilted Angle =   3.036
+Roll Angle   = -0.171
+Pitch Angle  = 3.031
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,03:51:35"
+Satellite Number = 10
+GPS Strength     = "46,45,44,43,43,43,42,42,42,42"
+Satellite ID     = " 3,31, 9, 4,16,21, 1, 6,22,26"
+Longitude = 147.322570667
+Latitude   = -42.866351667
+Altitude   = 93.3
+RTC Time = "2023/04/07,03:59:30"
+
+[GPS00097]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,03:59:39"
+
+[Temperature00028]
+UTC Time = "2023/04/07,04:00:03"
+Temperature = 19.8750
+
+[GPS00098]
+GPS Status = GPS Cycle Off
+GPS Tick = 52
+UTC Time = "2023/04/07,04:00:27"
+DAC Value = 2066
+ADC Sync Value = 2907,229
+Phase Error = 17
+Max Phase Error = 46
+
+[GPS00099]
+GPS Status = GPS Synchronization
+UTC Time = "2023/04/07,04:07:39"
+Leap Second = 18
+eCompass North =  96.753
+Tilted Angle =   3.150
+Roll Angle   = -0.114
+Pitch Angle  = 3.148
+GPS Power = OFF
+Latest Fix UTC Time = "2023/04/07,04:00:27"
+Satellite Number = 10
+GPS Strength     = "45,45,43,43,43,42,42,42,42,40"
+Satellite ID     = " 3,31, 4, 6, 9,16,21,22,26,28"
+Longitude = 147.322574000
+Latitude   = -42.866353000
+Altitude   = 92.9
+RTC Time = "2023/04/07,04:07:42"
+
+[GPS00100]
+GPS Status = GPS Cycle On
+GPS Tick = 480
+UTC Time = "2023/04/07,04:08:27"
+
+[GPS00101]
+GPS Status = GPS Cycle Off
+GPS Tick = 68
+UTC Time = "2023/04/07,04:09:39"
+DAC Value = 2068
+ADC Sync Value = 2907,237
+Phase Error = 7
+Max Phase Error = 46
+
+[Temperature00029]
+UTC Time = "2023/04/07,04:10:03"
+Temperature = 19.8750

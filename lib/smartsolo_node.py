@@ -317,7 +317,8 @@ def geophone_qc(device_info: pd.DataFrame, limits: dict | None = None,
             p = f"ch{ch}_"
             if f"{p}resonate_freq" not in b:
                 continue
-            r1 = b.get(f"{p}resistance_1", np.nan) * 1000
+            # V1.0.5 firmware logs one resistance value, later firmware two
+            r1 = b.get(f"{p}resistance_1", b.get(f"{p}resistance", np.nan)) * 1000
             r2 = b.get(f"{p}resistance_2", np.nan) * 1000
             f0, h, s = b[f"{p}resonate_freq"], b[f"{p}damping"], b[f"{p}sensitivity"]
             row = dict(serial=str(b.get("serial_number")), boot_no=b.get("boot_no"),

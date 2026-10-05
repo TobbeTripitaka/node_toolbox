@@ -137,7 +137,7 @@ def component_from(path, trace) -> str:
 # --------------------------------------------------------------------------- #
 def index_waveforms(root, serial_from=None, component_func=None, mapping=None, extensions=None,
                     cache: str | os.PathLike | None = None, refresh: bool = False,
-                    tag_marks: str = "block_start", verbose: bool = False) -> pd.DataFrame:
+                    tag_marks: str | None = None, verbose: bool = False) -> pd.DataFrame:
     """
     Scan a folder tree (or list of folders/files) for MiniSEED, SEG-Y and raw
     SmartSolo DLD files and return one row per trace id per file:
@@ -325,7 +325,7 @@ def seed_codes(serial, time=None, mapping=None, sampling_rate=100.0, component="
 # --------------------------------------------------------------------------- #
 # Extraction
 # --------------------------------------------------------------------------- #
-def _read_window(path, fmt, t0, t1, tag_marks="block_start"):
+def _read_window(path, fmt, t0, t1, tag_marks=None):
     from obspy import read
 
     if fmt == "DLD":
@@ -352,7 +352,7 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
                       merge_method: int = 1, fill_value=None, return_stream: bool = True,
                       default_network: str = "XX", encoding=None, component_func=None,
                       invert_polarity="auto", out_format: str = "MSEED",
-                      tag_marks: str = "block_start", verbose: bool = False):
+                      tag_marks: str | None = None, verbose: bool = False):
     """
     Cut waveforms for the selected deployments.
 
@@ -719,7 +719,7 @@ def extract_region(log_root, waveform_root, mapping=None, point=None, radius_km=
 
 def convert_dld(dld_root, out_dir="output", mapping=None, out_format="MSEED", chunk="1D",
                 log_root=None, start=None, end=None, invert_polarity="auto", components=None,
-                response="auspass", tag_marks="block_start"):
+                response="auspass", tag_marks=None):
     """
     Convert raw SmartSolo DLD files straight to MiniSEED or SEG-Y (+ station
     table and StationXML), without SoloLite.

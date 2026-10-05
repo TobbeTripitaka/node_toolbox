@@ -8,5 +8,6 @@ shapely>=2.0
 pyproj
 pyogrio
 ppigrf        # optional: magnetic declination
+contextily    # optional: basemaps in break_test.ipynb
 jupyter
 pytest

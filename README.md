@@ -39,18 +39,17 @@ docs/DLD_FORMAT.md                    reverse-engineered DLD format
 notebooks/smartsolo_log_demo.ipynb    log parsing and plotting
 notebooks/select_and_extract_demo.ipynb  selection + waveform extraction
 notebooks/node_qc_demo.ipynb          pulse test, sensor QC, polarity, orientation, response
-notebooks/dld_demo.ipynb              raw DLD files -> MiniSEED / SEG-Y / StationXML
+notebooks/dld_demo.ipynb              raw DLD files -> MiniSEED / SEG-Y / StationXML, DLD timing
+notebooks/break_test.ipynb            the Land Cruiser break test: map, events, speeds, spectra, fun
 scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
-data/nodes/<serial>/                  one folder per node, as on the node's disk:
-  453021267, 453022522                  DML deployments, 2 weeks of logs (453022522: complete folder
-                                        with script, device.ini, PULSE_*.WAV ...)
-  453038428, 453038431                  logs + raw seis000{X,Y,Z}.DLD, side-by-side test, 250 sps
-  453022317, 453027665                  raw DLD only (no log), 1000 sps
-  4530261xx, 4530462xx                  short test logs (firmware V1.1.2 / V1.1.4, GNSS records)
-data/station_mapping.csv              example serial -> SEED code table
-data/example_area.geojson             example selection polygon
-data/seismic_traces/                  (generated, not in git) synthetic waveforms
+data/break_test/                      4 complete nodes, raw DLD + logs + pulse tests (Git LFS):
+                                      a Land Cruiser HJ60 braking (see data/break_test/README.md)
+data/nodes/<serial>/                  example logs (no waveform data):
+  453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
+  453038428, 453038431                  side-by-side test, 250 sps, 18 dB
+  4530261xx, 4530462xx                  short tests (firmware V1.1.2 / V1.1.4, GNSS records)
+docs/FINDINGS.md                      everything learned from the files, with numbers
 ```
 
 ### Install
@@ -58,6 +57,7 @@ data/seismic_traces/                  (generated, not in git) synthetic waveform
 ```bash
 git clone https://github.com/TobbeTripitaka/node_toolbox.git
 cd node_toolbox
+git lfs install && git lfs pull      # raw DLD sample data (~300 MB, Git LFS)
 pip install -r requirements.txt
 ```
 
@@ -311,6 +311,17 @@ python scripts/make_synthetic_waveforms.py      # -> data/seismic_traces/
 pytest -q tests
 ```
 
+## Break test
+
+`data/break_test/` holds four complete nodes recording **a Toyota Land
+Cruiser HJ60 braking, with a laughing baby in the back seat** (Hobart,
+31 March and 6–7 April 2023, 500 sps). `notebooks/break_test.ipynb` maps the
+nodes on aerial imagery, detects the vehicle events, estimates speeds from
+the travel time between the node pairs, picks the ten most likely brake
+stops, shows spectrograms with Doppler-gliding engine tones, stacks and
+spectra, particle motion, an engine-rpm estimate, an (unsuccessful) search
+for the baby's laughter, and an audio version of the strongest stop.
+
 ## Raw DLD files
 
 The nodes store data as `seisNNN{X,Y,Z}.DLD` (`MiniSeed_Output_Mode = 0`).
@@ -344,7 +355,7 @@ wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_forma
 
 - **Sample rate**: from the tag spacing. The log/script `Sample Rate` is
   the sample *interval* in 10 µs units: 100 → **1000 sps** (the DML nodes),
-  400 → 250 sps, 200 → 500 sps (`sample_rate_hz` column).
+  200 → 500 sps (break test), 400 → 250 sps (`sample_rate_hz` column).
 - **Components**: X = north–south → `?PN`, Y = east–west → `?PE`, Z → `?PZ`.
 - **Polarity**: raw DLD counts have SmartSolo polarity; `extract_waveforms`
   multiplies by −1 (AusPass).
@@ -354,10 +365,16 @@ wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_forma
 - **Position without logs**: from the GPS positions in the tags (first
   stable fix). Log deployments are widened to cover the recorded data (the
   log's first record is ~45 s after recording starts).
-- **Timing**: two nodes 10 m apart that started 4 s apart line up within one
-  sample. Whether a tag marks the start (default `tag_marks="block_start"`)
-  or the end of the preceding 1000-sample block is not yet confirmed –
-  check once with `dld.compare_with_export(dld_trace, sololite_trace)`.
+- **Timing**: tag times come from the GPS time of week (`time_source="tow"`,
+  default). The text time in the tags is 2 s late until the receiver knows
+  the leap seconds and then jumps back 2 s mid-file – cross-correlating
+  nodes shows false 2-s offsets with text times and 0 ± 4 ms with TOW.
+  Whether a tag marks the start (default `tag_marks="block_start"`) or the
+  end of the preceding 1000-sample block is not yet confirmed – check once
+  with `dld.compare_with_export(dld_trace, sololite_trace)`.
+- **Position**: the DLD header position is written when the file is
+  closed; use the tag positions (`build_deployments_from_dld`), which also
+  show when nodes were picked up while recording.
 - SEG-Y output splits traces into ≤32767 samples (whole seconds); MiniSEED
   uses Steim-2.
 

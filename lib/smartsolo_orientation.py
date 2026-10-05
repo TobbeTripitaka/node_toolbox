@@ -113,6 +113,7 @@ def compass_records(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
     g = df[df["ecompass_north"].notna()] if "ecompass_north" in df else df.iloc[0:0]
     out = g[["serial", "session"] + have].rename(columns=cols).copy()
+    out["heading_raw"] = out["heading_raw"] % 360      # V1.0.5 firmware logs -180..180
     parts = []
     for _, sub in out.groupby(["serial", "session"], sort=False):
         sub = sub.sort_index().copy()
