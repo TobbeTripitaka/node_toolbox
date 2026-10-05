@@ -1,0 +1,19 @@
+Table~\ref{tab:perf} lists execution times on Apple M2 Max, 12 cores (Python 3.12.7, ObsPy 1.4.2, pandas 2.2.3, NumPy 2.5.3). Reading a 31-minute, 500-sps DLD component (2.8~MB) takes 44~ms, about 42\,000 times faster than real time. One day of 1000-sps data (about 265~MB per component) takes about 4~s. Log parsing is the slowest step, at about 0.8~s for a two-week log with 9920 records, but it runs once per node and the deployment and waveform index tables can be cached as CSV.
+
+\begin{table}[ht!]
+\seismicatablestyle
+\begin{tabular}{m{4.9cm} m{2.4cm}}
+Operation & Time \\
+\hline
+DLD header & 0.05 ms \\
+DLD time tags (924 blocks) & 24 ms \\
+DLD component (924\,000 samples) & 44 ms \\
+DLD 60-s window & 35 ms \\
+Log, 2.1~MB, 9920 records & 801 ms \\
+Deployments from 2 logs & 1.9 s \\
+Deployments from 18 DLD files & 364 ms \\
+Waveform index, 18 DLD files & 614 ms \\
+\end{tabular}
+\caption{Median execution times (5 repetitions; 3 for the last four rows) on Apple M2 Max, 12 cores (Python 3.12.7, ObsPy 1.4.2, pandas 2.2.3, NumPy 2.5.3).}
+\label{tab:perf}
+\end{table}
