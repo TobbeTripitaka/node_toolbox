@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+*.parquet
+soh_all_nodes.csv
