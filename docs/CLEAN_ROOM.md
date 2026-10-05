@@ -1,5 +1,7 @@
 # How the DLD reader was made (clean-room statement)
 
+---
+
 `lib/smartsolo_dld.py` reads SmartSolo `.DLD` data files. This page records
 how the file format was worked out and how the code was written, so that
 anyone using or sharing it can see where it came from.
@@ -82,3 +84,6 @@ by them. The software is provided "as is" under the MIT licence (see
 This statement describes what was done. It is not legal advice. Before
 redistributing in a commercial setting, check the terms of your own
 instrument purchase or software licence agreements.
+
+
+_Tobias Stål, 2024--2026_
