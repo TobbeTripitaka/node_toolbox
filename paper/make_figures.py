@@ -6,6 +6,7 @@ Make the figures of the Seismica Software Report (paper/figures/).
 
 Needs the sample data (git lfs pull).
 """
+
 import sys
 import warnings
 from pathlib import Path
@@ -198,7 +199,7 @@ def fig3_soh():
     save(fig, "fig03_state_of_health")
 
 
-# --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- # FIX
 def fig4_location():
     df = sl.read_logs(DML)
     deps = loc.build_deployments(DML).set_index("serial")
@@ -294,6 +295,7 @@ def fig5_pulse():
              fontsize=5.8, va="bottom", ha="right")
     save(fig, "fig05_pulse_test")
     R.to_csv(OUT / "fig05_pulse_vs_log.csv", index=False)
+
 
 
 # --------------------------------------------------------------------------- #
