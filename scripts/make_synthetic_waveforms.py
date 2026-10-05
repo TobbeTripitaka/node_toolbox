@@ -12,6 +12,8 @@ Layout written (one folder per node serial, as SoloLite exports do):
 Header station/network codes are left blank, as in raw exports, so the serial
 must be recovered from the file/folder name. The data are random noise plus a
 common "icequake" arriving at both nodes, in int32 counts at 100 Hz.
+
+Tobias Stål, 2024
 """
 
 import argparse
@@ -26,7 +28,11 @@ EVENTS = [UTCDateTime("2024-12-26T00:12:34"), UTCDateTime("2024-12-26T00:47:10")
           UTCDateTime("2024-12-26T01:21:05")]
 
 
+
 def synth(serial, comp, t0, npts, rng):
+    '''
+    tr
+    '''
     x = rng.normal(0, 200, npts)
     delay = 0.0 if serial.endswith("267") else 0.08   # ~200 m apart
     for ev in EVENTS:
