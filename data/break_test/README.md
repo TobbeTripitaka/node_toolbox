@@ -1,7 +1,7 @@
 # Break test data
 
-**The seismic signal of a Toyota Land Cruiser HJ60 that brakes – with a
-laughing baby in the back seat.** Roughly ten braking manoeuvres; exact
+**The seismic signal of a Toyota Land Cruiser HJ60 that brakes; with a
+laughing 1 year old baby in the back seat.** Roughly ten braking manoeuvres; exact
 times were not noted.
 
 Six SmartSolo IGU-16HR 3C 5 Hz nodes along the road beside the sports oval
