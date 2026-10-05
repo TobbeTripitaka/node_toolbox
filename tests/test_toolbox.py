@@ -201,6 +201,31 @@ def test_dld_labels_late_while_leap_seconds_unknown():
         assert len(dl.scan_dld(f, time_source="tow")) == 1
 
 
+def test_dld_label_jump_excerpt():
+    """data/timing_example: labels of 453009194 jump back 2 s at 00:58:37; TOW time is continuous
+    and lines both nodes up, label time gives a 2-s lag before the jump."""
+    from obspy import UTCDateTime
+    from obspy.signal.cross_correlation import correlate, xcorr_max
+    import smartsolo_dld as dl
+    ex = ROOT / "data" / "timing_example"
+    f94, f47 = ex / "453009194_seis001Z_excerpt.DLD", ex / "453010047_seis001Z_excerpt.DLD"
+    if f94.stat().st_size < 1000:
+        pytest.skip("Git LFS files not pulled")
+    tags = dl.read_dld_tags(f94)
+    assert list(tags["label_minus_tow_s"]) == [2.0] * 45 + [0.0] * 45
+    assert len(dl.scan_dld(f94, time_source="label")) == 2 and len(dl.scan_dld(f94)) == 1
+    assert set(dl.read_dld_tags(f47)["label_minus_tow_s"]) == {0.0}
+    lags = {}
+    for src in ("label", "tow"):
+        t0, t1 = UTCDateTime("2023-04-07T00:57:20"), UTCDateTime("2023-04-07T00:58:20")
+        x, y = (dl.read_dld(f, starttime=t0, endtime=t1, time_source=src).merge(fill_value=0)[0] for f in (f94, f47))
+        for tr in (x, y):
+            tr.detrend("demean"); tr.filter("bandpass", freqmin=2, freqmax=40)
+        n = min(x.stats.npts, y.stats.npts)
+        lags[src] = xcorr_max(correlate(x.data[:n], y.data[:n], 1500), abs_max=False)[0] / 500
+    assert abs(lags["label"] - 2.0) < 0.05 and abs(lags["tow"]) < 0.05
+
+
 def test_dld_reader_never_modifies_files():
     """Reading headers, tags and samples leaves the DLD files byte-for-byte unchanged."""
     import hashlib, os

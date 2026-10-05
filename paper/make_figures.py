@@ -4,8 +4,7 @@ Make the figures of the Seismica Software Report (paper/figures/).
     cd paper && python make_figures.py          # all figures
     python make_figures.py 3 7                  # selected figures
 
-Needs the sample data (git lfs pull) and, for Fig. 7, internet access for
-the Esri World Imagery basemap (contextily).
+Needs the sample data (git lfs pull).
 """
 import sys
 import warnings
@@ -301,192 +300,39 @@ def fig5_pulse():
 def fig6_timing():
     from obspy import UTCDateTime
     from obspy.signal.cross_correlation import correlate, xcorr_max
-    rows = []
-    for s in SERIALS:
-        tg = dld.read_dld_tags(dfile(s))
-        rows.append((s, dld.read_dld_header(dfile(s))["leap_seconds"], tg.label_minus_tow_s.median()))
-
-    def lags(a, b, src, t0="2023-03-31T01:35", t1="2023-03-31T01:50", win=30, step=30):
-        out, t = [], UTCDateTime(t0)
-        while t < UTCDateTime(t1):
-            x = dld.read_dld(dfile(a), starttime=t, endtime=t + win, time_source=src)[0]
-            y = dld.read_dld(dfile(b), starttime=t, endtime=t + win, time_source=src)[0]
+    ex = ROOT / "data/timing_example"
+    files = {"453009194": ex / "453009194_seis001Z_excerpt.DLD", "453010047": ex / "453010047_seis001Z_excerpt.DLD"}
+    fig, axes = plt.subplots(1, 2, figsize=(W2, 2.4), gridspec_kw=dict(wspace=0.3))
+    ax = axes[0]
+    for (s, f), c, ls in zip(files.items(), ["C0", "C1"], ["-", "--"]):
+        t = dld.read_dld_tags(f)
+        ax.step(t.time_tow, t.label_minus_tow_s, where="post", color=c, ls=ls, lw=1.2, label=s)
+    ax.set(ylim=(-0.5, 2.6), ylabel="text label − UTC(TOW) (s)", title="Time tags of two neighbouring nodes")
+    ax.annotate("label 00:58:37 repeated:\nreceiver learns leap seconds", xy=(pd.Timestamp("2023-04-07 00:58:37", tz="UTC"), 1.0),
+                xytext=(pd.Timestamp("2023-04-07 00:58:50", tz="UTC"), 1.5), fontsize=6, arrowprops=dict(arrowstyle="->", lw=0.6))
+    ax.legend(loc="lower left"); ax.grid(alpha=.25); label(ax, "a")
+    ax = axes[1]
+    for src, mk, c in [("label", "o", "C3"), ("tow", "x", "C0")]:
+        rows, t = [], UTCDateTime("2023-04-07T00:57:10")
+        while t + 20 <= UTCDateTime("2023-04-07T01:00:05"):
+            x, y = (dld.read_dld(f, starttime=t, endtime=t + 20, time_source=src).merge(fill_value=0)[0] for f in files.values())
             for z in (x, y):
                 z.detrend("demean"); z.filter("bandpass", freqmin=2, freqmax=40)
             n = min(x.stats.npts, y.stats.npts)
             lag, cc = xcorr_max(correlate(x.data[:n], y.data[:n], 1500), abs_max=False)
-            out.append((t.datetime, lag / 500, cc)); t += step
-        return pd.DataFrame(out, columns=["time", "lag", "cc"]).set_index("time")
-
-    fig, axes = plt.subplots(1, 3, figsize=(W2, 2.5), gridspec_kw=dict(width_ratios=[1.1, 1.3, 0.8], wspace=0.35))
-    ax = axes[0]
-    tt = np.array([0, 1, 2, 3, 4, 5, 6])
-    ax.step(tt, np.where(tt < 3, 2, 0), where="post", color="C3", lw=1.2, label="text label − UTC(TOW)")
-    ax.step(tt, np.zeros_like(tt) + 0.03, where="post", color="C0", lw=1.2, ls="--", label="UTC(TOW) − UTC")
-    ax.axvline(3, color="0.5", lw=0.6, ls=":")
-    ax.text(3.15, 1.0, "receiver learns\nleap seconds\n(header 0x104:\n0 → 18)", fontsize=5.8)
-    ax.set(xlabel="time (schematic)", ylabel="offset (s)", ylim=(-0.5, 2.8), xticks=[], xlim=(0, 6),
-           title="Text label vs GPS TOW")
-    ax.legend(loc="upper right", fontsize=5.6)
-    label(ax, "a")
-    ax = axes[1]
-    for (a, b, dist), c, mk in zip([("453009194", "453004362", 5.4), ("453010077", "453010167", 11.9)], ["C0", "C2"], ["x", "+"]):
-        s_ = lags(a, b, "tow"); s_ = s_[s_.cc > 0.1]
-        ax.plot(s_.index, s_.lag * 1e3, mk, ms=3.5, color=c,
-                label=f"{a[-5:]}–{b[-5:]} ({dist:.0f} m): median {s_.lag.median() * 1e3:+.0f} ms")
-    ax.set(ylim=(-300, 300), ylabel="lag of max. correlation (ms)", title="Neighbour lags (TOW, 30-s windows)")
-    ax.legend(loc="lower left", fontsize=5.4); ax.grid(alpha=.25)
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M")); ax.set_xlabel("UTC, 31 Mar 2023")
-    label(ax, "b")
-    ax = axes[2]
-    R = pd.DataFrame(rows, columns=["serial", "leap", "off"])
-    ax.barh(range(len(R)), R.off, color="C3", height=0.6)
-    for i, r in enumerate(R.itertuples()):
-        ax.text(0.08, i, f"{r.serial}  leap={r.leap}", color="w", va="center", fontsize=5.6)
-    ax.set_yticks([])
-    ax.set(xlabel="label − UTC(TOW) (s)", xlim=(0, 2.4), title="All six 31 Mar files")
-    label(ax, "c", x=-0.05)
+            rows.append((pd.Timestamp((t + 10).datetime, tz="UTC"), lag / 500)); t += 10
+        r = pd.DataFrame(rows, columns=["t", "lag"])
+        ax.plot(r.t, r.lag, mk, ms=4, color=c, mfc="none", label=f"time_source='{src}'")
+    ax.axvline(pd.Timestamp("2023-04-07 00:58:37", tz="UTC"), color="0.5", ls=":", lw=0.7)
+    ax.set(ylim=(-0.5, 2.6), ylabel="lag of max. correlation (s)", title="453009194 vs 453010047 (21 m), 20-s windows")
+    ax.legend(loc="center right"); ax.grid(alpha=.25); label(ax, "b")
+    for a in axes:
+        a.xaxis.set_major_locator(mdates.MinuteLocator()); a.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        a.set_xlabel("UTC, 7 Apr 2023")
     save(fig, "fig06_timing")
-    pd.DataFrame(rows, columns=["serial", "leap_seconds", "label_minus_tow_s"]).to_csv(OUT / "fig06_label_offsets.csv", index=False)
 
 
-# --------------------------------------------------------------------------- #
-def fig7_selection():
-    import contextily as cx
-    import geopandas as gpd
-    from shapely.geometry import Polygon
-    deps = loc.build_deployments_from_dld(BT)
-    deps = deps[deps.session == 0].reset_index(drop=True)
-    g = gpd.GeoDataFrame(deps, geometry=gpd.points_from_xy(deps.longitude, deps.latitude), crs=4326).to_crs(3857)
-    centre = (-42.9017, 147.3301)
-    sel_r = loc.select_deployments(deps, point=centre, radius_km=0.03, start="2023-03-31T01:40", end="2023-03-31T01:41")
-    poly = Polygon([(147.3290, -42.9029), (147.3297, -42.9029), (147.3297, -42.9022), (147.3290, -42.9022)])
-    sel_p = loc.select_deployments(deps, polygon=poly, start="2023-03-31T01:40", end="2023-03-31T01:41")
-    fig, ax = plt.subplots(figsize=(W1, 3.6))
-    for s in SERIALS:
-        tg = dld.read_dld_tags(dfile(s))
-        tg = tg[tg.latitude.abs() > 1]
-        tp = gpd.GeoSeries(gpd.points_from_xy(tg.longitude, tg.latitude), crs=4326).to_crs(3857)
-        ax.plot(tp.x, tp.y, "-", color=COL[s], lw=0.7, alpha=0.9)
-    c = gpd.GeoSeries(gpd.points_from_xy([centre[1]], [centre[0]]), crs=4326).to_crs(3857)
-    circ = gpd.GeoSeries(gpd.points_from_xy([centre[1]], [centre[0]]), crs=4326).to_crs(32755).buffer(30).to_crs(3857)
-    circ.boundary.plot(ax=ax, color="yellow", lw=1.0, ls="--")
-    gpd.GeoSeries([poly], crs=4326).to_crs(3857).boundary.plot(ax=ax, color="cyan", lw=1.0, ls="--")
-    for _, r in g.iterrows():
-        chosen = r.serial in set(sel_r.serial) | set(sel_p.serial)
-        ax.plot(r.geometry.x, r.geometry.y, "^", ms=7, color=COL[r.serial], mec="w" if chosen else "k", mew=1.0)
-        off = {"453004362": (6, -10), "453010047": (-30, -12), "453010077": (-34, 3)}.get(r.serial, (5, 4))
-        ax.annotate(r.serial[-5:], (r.geometry.x, r.geometry.y), xytext=off, textcoords="offset points",
-                    color="w", fontsize=6, fontweight="bold")
-    b = g.total_bounds; pad = 45
-    ax.set_xlim(b[0] - pad, b[2] + pad); ax.set_ylim(b[1] - pad - 40, b[3] + pad)
-    cx.add_basemap(ax, source=cx.providers.Esri.WorldImagery, zoom=19, attribution_size=4)
-    ax.set_xticks([]); ax.set_yticks([]); ax.set_xlabel(""); ax.set_ylabel("")
-    ax.text(0.02, 0.98, "yellow: within 30 m of a point\ncyan: inside a polygon\nlines: GPS tags (nodes carried\naway after 01:51)",
-            transform=ax.transAxes, va="top", fontsize=5.8, color="w")
-    ax.set_title("Break test, Sandy Bay, Hobart, 31 Mar 2023")
-    save(fig, "fig07_selection_map")
-    print("radius:", sorted(sel_r.serial), "polygon:", sorted(sel_p.serial))
-
-
-# --------------------------------------------------------------------------- #
-def _envelope(tr, fmin=5, fmax=80, smooth=0.5, step=0.1):
-    from scipy.signal import hilbert
-    tr = tr.copy(); tr.detrend("demean"); tr.filter("bandpass", freqmin=fmin, freqmax=fmax)
-    e = np.abs(hilbert(tr.data.astype(float)))
-    k = int(smooth * tr.stats.sampling_rate); e = np.convolve(e, np.ones(k) / k, "same")
-    n = int(step * tr.stats.sampling_rate)
-    t0 = pd.Timestamp(tr.stats.starttime.datetime, tz="UTC")
-    return pd.Series(e[::n], index=t0 + pd.to_timedelta(np.arange(len(e[::n])) * step, unit="s"))
-
-
-def fig8_breaktest(tmp=ROOT / "output/paper_extract"):
-    from obspy import UTCDateTime
-    deps = loc.combine_deployments(loc.build_deployments(BT), loc.build_deployments_from_dld(BT))
-    deps = deps[deps.start < pd.Timestamp("2023-04-01", tz="UTC")]
-    idx = wf.index_waveforms([p for p in BT.rglob("seis000?.DLD")])
-    t_ev = UTCDateTime("2023-03-31T01:35:12.5")
-    t0, t1 = t_ev - 20, t_ev + 20
-    st = wf.extract_waveforms(deps, idx, start=t0.datetime, end=t1.datetime, out_dir=tmp, out_format="MSEED")
-    d0 = deps.set_index("serial")
-    order = sorted(SERIALS, key=lambda s: loc.distance_m(d0.latitude[s], d0.longitude[s],
-                                                         d0.latitude["453010047"], d0.longitude["453010047"]))
-    dist = {s: loc.distance_m(d0.latitude[s], d0.longitude[s], d0.latitude["453010047"], d0.longitude["453010047"])
-            for s in order}
-    E = pd.DataFrame({s: _envelope(dld.read_dld(dfile(s))[0]) for s in SERIALS})
-
-    fig = plt.figure(figsize=(W2, 5.6))
-    gs = fig.add_gridspec(3, 2, height_ratios=[0.9, 1.6, 1.0], width_ratios=[1.6, 1], hspace=0.62, wspace=0.32)
-    ax0 = fig.add_subplot(gs[0, :])
-    for s in SERIALS:
-        ax0.semilogy(E.index, E[s], lw=0.4, color=COL[s], label=s)
-    ax0.axvline(t_ev.datetime, color="k", lw=0.6, ls=":")
-    ax0.set(ylabel="Z envelope, 5–80 Hz\n(counts)", title="Six nodes, raw DLD: vehicle passes 01:34–01:50, handling after 01:50")
-    ax0.set_ylim(5, 1e9); ax0.legend(ncol=6, loc="upper left", fontsize=5.6)
-    ax0.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M")); label(ax0, "a", x=-0.04)
-    ax1 = fig.add_subplot(gs[1, 0])
-    for s in order:
-        tr = st.select(station=s[-5:], channel="??Z").merge(fill_value=0)[0].copy(); tr.detrend("demean"); tr.filter("bandpass", freqmin=5, freqmax=80)
-        y = tr.data / np.abs(tr.data).max() * 9
-        ax1.plot(tr.times() - 20, y + dist[s], color=COL[s], lw=0.4)
-        ax1.text(20.5, dist[s] + {"453004362": -4, "453009194": 4, "453010077": -3, "453010167": 3}.get(s, 0),
-                 s[-5:], fontsize=5.5, va="center", color=COL[s])
-    ax1.set(xlim=(-20, 20), xlabel="s from 01:35:12.5 UTC", ylabel="distance along road from 10047 (m)",
-            title="Exported MiniSEED, ??.DPZ (×−1), 5–80 Hz")
-    label(ax1, "b", x=-0.06)
-    ax2 = fig.add_subplot(gs[1, 1])
-    z = dld.read_dld(dfile("453010077"), starttime=t0, endtime=t1)[0]
-    ax2.specgram(z.data.astype(float) - z.data.mean(), Fs=500, NFFT=512, noverlap=480, cmap="magma", vmin=-20)
-    ax2.set(ylim=(0, 150), xlabel="s from 01:34:52.5", ylabel="Hz", title="453010077 Z spectrogram")
-    label(ax2, "c")
-    # speed between groups
-    from scipy.signal import find_peaks
-    T0, T1 = pd.Timestamp("2023-03-31 01:34:45", tz="UTC"), pd.Timestamp("2023-03-31 01:50:02", tz="UTC")
-
-    def peaks(x, factor=8, sep=5.0):
-        x = x.loc[T0:T1].dropna(); bg = x.median()
-        p, pr = find_peaks(x.values, height=factor * bg, prominence=factor / 2 * bg, distance=int(sep / 0.1))
-        return pd.Series(pr["peak_heights"] / bg, index=x.index[p])
-
-    def pair(a, b, tol=5):
-        pa, pb = peaks(E[a]), peaks(E[b]); out = []
-        for t in pa.index:
-            dt = np.abs((pb.index - t).total_seconds())
-            if len(dt) and dt.min() <= tol:
-                out.append(t + (pb.index[dt.argmin()] - t) / 2)
-        return pd.DatetimeIndex(out)
-
-    sw, ne = pair("453009194", "453010047"), pair("453010077", "453010167")
-    pair_dist = np.mean([loc.distance_m(d0.latitude[a], d0.longitude[a], d0.latitude[b], d0.longitude[b])
-                         for a in ("453009194", "453010047") for b in ("453010077", "453010167")])
-    sp = []
-    for t in ne:
-        dt = (sw - t).total_seconds()
-        if len(dt) and 2 < np.abs(dt).min() <= 20:
-            sp.append(pair_dist / np.abs(dt).min() * 3.6)
-    ax3 = fig.add_subplot(gs[2, 0])
-    ax3.hist(sp, bins=np.arange(0, 105, 5), color="C2", ec="k", lw=0.5)
-    ax3.set(xlabel="apparent speed between node groups (km/h)", ylabel="passes",
-            title=f"{len(sw)} + {len(ne)} events, {len(sp)} matched passes, median {np.median(sp):.0f} km/h")
-    label(ax3, "d", x=-0.06)
-    ax4 = fig.add_subplot(gs[2, 1])
-    from scipy.signal import welch
-    tr = dld.read_dld(dfile("453010077"))[0]
-    ev = [welch(tr.slice(UTCDateTime(t.to_pydatetime()) - 2, UTCDateTime(t.to_pydatetime()) + 2).data.astype(float),
-                fs=500, nperseg=1024) for t in ne]
-    q = E["453010077"].loc[T0:T1].idxmin()
-    fq, pq = welch(tr.slice(UTCDateTime(q.to_pydatetime()) - 10, UTCDateTime(q.to_pydatetime()) + 10).data.astype(float),
-                   fs=500, nperseg=1024)
-    ax4.loglog(ev[0][0], np.median([e[1] for e in ev], 0), "C3", label="median of events")
-    ax4.loglog(fq, pq, "k", label="quietest 20 s")
-    ax4.set(xlim=(1, 250), xlabel="Hz", ylabel="PSD (counts²/Hz)", title="453010077 Z")
-    ax4.legend(loc="lower left"); ax4.grid(alpha=.25, which="both"); label(ax4, "e")
-    save(fig, "fig08_break_test")
-    pd.DataFrame({"speed_kmh": sp}).to_csv(OUT / "fig08_speeds.csv", index=False)
-
-
-FIGS = {1: fig1_workflow, 2: fig2_dld, 3: fig3_soh, 4: fig4_location, 5: fig5_pulse,
-        6: fig6_timing, 7: fig7_selection, 8: fig8_breaktest}
+FIGS = {1: fig1_workflow, 2: fig2_dld, 3: fig3_soh, 4: fig4_location, 5: fig5_pulse, 6: fig6_timing}
 
 if __name__ == "__main__":
     which = [int(a) for a in sys.argv[1:]] or list(FIGS)

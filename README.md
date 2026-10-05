@@ -49,7 +49,8 @@ data/nodes/<serial>/                  example logs, no waveform data (see data/n
   453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
 tests/fixtures/                       a V1.1.4 log with GNSS records (parser test)
 docs/FINDINGS.md                      everything learned from the files, with numbers
-paper/                                Seismica Software Report manuscript, figures and make_figures.py
+data/timing_example/                  two 3-min DLD excerpts showing the 2-s label jump (Git LFS)
+paper/                                make_figures.py and figures/ (figures for the software report)
 ```
 
 ### Install
@@ -368,7 +369,8 @@ wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_forma
 - **Timing**: tag times come from the GPS time of week (`time_source="tow"`,
   default). The text time in the tags is 2 s late until the receiver knows
   the leap seconds and then jumps back 2 s mid-file – cross-correlating
-  nodes shows false 2-s offsets with text times and 0 ± 4 ms with TOW.
+  nodes shows false 2-s offsets with text times and 0 ± 4 ms with TOW
+  (example: `data/timing_example/`).
   Whether a tag marks the start (default `tag_marks="block_start"`) or the
   end of the preceding 1000-sample block is not yet confirmed – check once
   with `dld.compare_with_export(dld_trace, sololite_trace)`.

@@ -135,12 +135,13 @@ data keep that layout).
   − 1 s − (GPS−UTC) agrees exactly with the text time once the leap seconds
   are known (the −1 s: TOW is the time of the *next* pulse, as in u-blox
   TIM-TP). `smartsolo_dld` uses this by default (`time_source="tow"`).
-- Proof (removed later recording): cross-correlating ambient noise between
-  nodes every 10 min, text times gave lags of exactly ±2 s whenever one
-  node's labels had jumped and the other's hadn't; TOW times gave 0 ± 4 ms
-  throughout. With the remaining data, `notebooks/dld_demo.ipynb` and the
-  tests check that neighbouring nodes (5 m and 12 m apart) align with TOW
-  times.
+- Proof: cross-correlating ambient noise between nodes every 10 min over
+  the later 4-hour recording, text times gave lags of exactly ±2 s whenever
+  one node's labels had jumped and the other's hadn't; TOW times gave
+  0 ± 4 ms throughout. A 3-minute excerpt around the jump of 453009194 at
+  00:58:37, with the same minutes from 453010047, is kept in
+  `data/timing_example/` (2-s lag with labels before the jump, 0 after and
+  with TOW; `notebooks/dld_demo.ipynb`, test `test_dld_label_jump_excerpt`).
 - Two nodes 10 m apart started 4 s apart (Beijing test, 250 sps, removed
   sample files): lag 0 samples, cc 0.96 (X), 0.93 (Z) – blocks and tags
   decoded correctly.
@@ -158,6 +159,6 @@ data keep that layout).
 | 453021267, 453022522 | DML, Antarctica (−71.55, 11.12) | logs, 2 weeks (**kept**, `data/nodes/`) | 1000 sps, 0 dB, −17…+8 °C |
 | 453022317 | DML | `seis001?.DLD`, 3 min | 1000 sps, header altitude 1642 m |
 | 453027665 | near Casey (−66.28, 110.53) | `seis006?.DLD`, 72 s | 1000 sps |
-| break-test nodes | Hobart, 6–7 Apr 2023 | `seis001?.DLD`, 4 h (removed) | label jumps, see DLD timing |
+| break-test nodes | Hobart, 6–7 Apr 2023 | `seis001?.DLD`, 4 h (removed; 3-min excerpts of two nodes in `data/timing_example/`) | label jumps, see DLD timing |
 | 453038428, 453038431 | Beijing test (39.596, 116.760) | logs + `seis000?.DLD` (removed) | 250 sps, 18 dB, side by side, 4 s apart |
 | 4530462xx, 4530261xx | short tests | logs only (removed; one V1.1.4 log kept as `tests/fixtures/DigiSolo_V1.1.4_GNSS.LOG`) | V1.1.2/V1.1.4, GNSS records, 500 sps, 36 dB |
