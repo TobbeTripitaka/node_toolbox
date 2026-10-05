@@ -29,6 +29,8 @@ plot_series(df, column)   -> quick plot of one or more columns against time
 In the wide DataFrame each log record is one row, every field is a column
 (``NaN`` where a field does not apply to that record type), and the index is a
 timezone-aware ``DatetimeIndex`` (UTC) taken from the record's ``UTC Time``.
+
+Tobias Stål 2023-2026
 """
 
 from __future__ import annotations

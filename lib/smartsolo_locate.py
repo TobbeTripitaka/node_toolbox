@@ -29,6 +29,8 @@ find_logs(root)                         -> list of log files below a folder
 build_deployments(logs)                 -> GeoDataFrame, one row per deployment
 select_deployments(deps, point=..., radius_km=..., polygon=..., start=..., end=...)
 export_stations(deps, "stations.gpkg")  -> CSV / GeoPackage / GeoJSON / Shapefile
+
+Tobias Stål 2023-2026
 """
 
 from __future__ import annotations

@@ -43,6 +43,8 @@ If ``channel_prefix`` is empty it is derived from the sample rate following
 SEED conventions for a geophone (instrument code ``P``): 1000-5000 Hz -> ``G``,
 250-1000 Hz -> ``D``, 80-250 Hz -> ``E``, 10-80 Hz -> ``S`` (e.g. ``EPZ`` at
 100 Hz, ``DPZ`` at 250/500 Hz).
+
+Tobias Stål 2023-2026
 """
 
 from __future__ import annotations

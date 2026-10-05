@@ -64,6 +64,8 @@ read_dld(path, ...)          obspy Stream (one trace per continuous segment)
 scan_dld(path)               index rows without reading samples (for index_waveforms)
 read_dld_node(files)         X, Y, Z of one recording into one Stream
 compare_with_export(dld_st, exported_st)   timing/amplitude check vs SoloLite export
+
+Tobias Stål 2023-2026
 """
 
 from __future__ import annotations

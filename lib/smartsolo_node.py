@@ -38,6 +38,8 @@ told otherwise. The test consists of
 
 Conversion: 3355.4428 counts/mV at 0 dB preamp gain (SmartSolo manual), i.e.
 2^23 counts per 2.5 V.
+
+Tobias Stål 2023-2026
 """
 
 from __future__ import annotations
