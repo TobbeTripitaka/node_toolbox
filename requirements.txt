@@ -1,4 +1,10 @@
 pandas>=2.0
 numpy
 matplotlib
+obspy>=1.4
+geopandas>=0.14
+shapely>=2.0
+pyproj
+pyogrio
 jupyter
+pytest

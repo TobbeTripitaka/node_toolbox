@@ -233,7 +233,9 @@ def read_log(
         blocks without a ``Boot RTC``).
 
         Always-present columns: ``serial``, ``file``, ``record_type``,
-        ``record_no``, ``line_no``, ``time_inferred``; then one column per log
+        ``record_no``, ``line_no``, ``session``, ``time_inferred``;
+        ``session`` is the power-up number (the latest ``[DeviceInfoNNNNN]``
+        block before the record, 0 if none); then one column per log
         field in snake_case (``temperature``, ``voltage``, ``latitude``,
         ``gps_status``, ``available_memory`` ...).
 
@@ -246,8 +248,12 @@ def read_log(
 
     rows = []
     last_time = pd.NaT  # time of the previous section (incl. DeviceInfo boot RTC)
+    session = 0          # power-up counter: number of the latest [DeviceInfo] block
     for sec in sections:
         row = _section_to_row(sec)
+        if sec["record_type"] == "DeviceInfo":
+            session = int(sec["record_no"]) if not pd.isna(sec["record_no"]) else session + 1
+        row["session"] = session
         if sec["record_type"] == "DeviceInfo":
             row["utc_time"] = row.get("boot_rtc", pd.NaT)
         own_time = row.get("utc_time", pd.NaT)

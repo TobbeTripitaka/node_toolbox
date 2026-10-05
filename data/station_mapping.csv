@@ -1,0 +1,4 @@
+# serial -> SEED codes. location, channel_prefix, start, end are optional
+serial,network,station,location,channel_prefix,start,end
+453021267,XX,GL01,,,,
+453022522,XX,GL02,,,,
