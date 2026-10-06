@@ -309,10 +309,10 @@ def fig6_timing():
     for (s, f), c, ls in zip(files.items(), ["C0", "C1"], ["-", "--"]):
         t = dld.read_dld_tags(f)
         ax.step(t.time_tow, t.label_minus_tow_s, where="post", color=c, ls=ls, lw=1.2, label=s)
-    ax.set(ylim=(-0.5, 2.6), ylabel="text label − UTC(TOW) (s)", title="Time tags of two neighbouring nodes")
-    ax.annotate("label 00:58:37 repeated:\nreceiver learns leap seconds", xy=(pd.Timestamp("2023-04-07 00:58:37", tz="UTC"), 1.0),
-                xytext=(pd.Timestamp("2023-04-07 00:58:50", tz="UTC"), 1.5), fontsize=6, arrowprops=dict(arrowstyle="->", lw=0.6))
-    ax.legend(loc="lower left"); ax.grid(alpha=.25); label(ax, "a")
+    ax.set(ylim=(-1.6, 1.8), ylabel="text label − UTC(TOW) (s)", title="Time tags of two neighbouring nodes")
+    ax.annotate("label 00:58:37 repeated:\nreceiver learns leap seconds", xy=(pd.Timestamp("2023-04-07 00:58:37", tz="UTC"), 0.0),
+                xytext=(pd.Timestamp("2023-04-07 00:58:50", tz="UTC"), 0.9), fontsize=6, arrowprops=dict(arrowstyle="->", lw=0.6))
+    ax.legend(loc="center left"); ax.grid(alpha=.25); label(ax, "a")
     ax = axes[1]
     for src, mk, c in [("label", "o", "C3"), ("tow", "x", "C0")]:
         rows, t = [], UTCDateTime("2023-04-07T00:57:10")

@@ -55,7 +55,7 @@ block boundaries).
 | 0x0D0 | int64 | | start tick (ms) |
 | 0x0D8 | int64 | | end tick (ms); end − start = duration in ms |
 | 0x100 | int32 | 0 | ? |
-| 0x104 | int32 | 0 or 18 | GPS−UTC leap seconds known to the receiver (0 = not yet; labels then 2 s late) |
+| 0x104 | int32 | 0 or 18 | GPS−UTC leap seconds known to the receiver (0 = not yet: labels 1 s late; 18: labels 1 s early) |
 | 0x108 | int32[5] | 171, 87, 0 … | ? |
 | 0x11C | float32 | 1642.0 | altitude (m) at file close |
 | 0x120 | int32[4] | 1, 2, 3, 0 | ? |
@@ -72,7 +72,7 @@ Header bytes are identical in the X, Y and Z files of one recording.
 |---|---|---|---|
 | +0 | int32 | 0 | flag? |
 | +4 | int64 | 10106305104488 | tick, ms: +1000 per tag at 1000 sps, +4000 at 250 sps |
-| +12 | char[11] | `203718.00` | UTC time as text, whole seconds – 2 s late until the leap seconds are known |
+| +12 | char[11] | `203718.00` | UTC time as text, whole seconds – 1 s late until the leap seconds are known, 1 s early after |
 | +23 | char[9] | `20250211` | UTC date |
 | +32 | float64 | −66.282305 | latitude |
 | +40 | int32 | 0, ±1 | probably clock phase error |
@@ -86,14 +86,16 @@ Header bytes are identical in the X, Y and Z files of one recording.
 - The absolute tick value is not a linear clock across dates, so only its
   differences are used.
 - **UTC of a tag** (default, `time_source="tow"`): GPS week (from the text
-  date) + TOW − 1 s − (GPS−UTC, 18 s since 2017). This is continuous and
-  agrees with the text time once the receiver knows the leap seconds.
-  The text time (`time_source="label"`) is 2 s late before that and then
-  jumps back 2 s mid-file – this creates false 2-s offsets between nodes
-  (shown by cross-correlation in `notebooks/dld_demo.ipynb`).
-- **Absolute offset (unverified)**: the −1 s makes TOW agree with the
-  labels; an external huddle test reports data 1 s early with it. The offset
-  is `smartsolo_dld.DEFAULTS["tow_offset_s"]` (default −1.0; try 0.0).
+  date) + TOW − (GPS−UTC, 18 s since 2017). This is continuous.
+  The text time (`time_source="label"`) is 1 s late until the receiver knows
+  the leap seconds, then jumps back 2 s mid-file and is 1 s early – this
+  creates false 2-s offsets between nodes (shown by cross-correlation in
+  `notebooks/dld_demo.ipynb`).
+- **Absolute offset**: an earlier version subtracted 1 s so that TOW agreed
+  with the labels once the leap seconds are known; a huddle test against
+  permanent stations (S1.AUANU, M8.AUANU) showed the data 1 s early with it,
+  so the offset is now 0 (`smartsolo_dld.DEFAULTS["tow_offset_s"]`, kept as
+  a setting for tests with other firmware).
 - **Block convention (unverified)**: `tag_marks="block_start"` (default)
   takes tag *k* as the time of the first sample of block *k* (the block
   before the tag). `"block_end"` shifts all samples one block earlier.

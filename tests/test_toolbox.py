@@ -187,7 +187,7 @@ def test_dld_header_tags_and_samples():
     assert h["serial"] == "453009194" and h["component"] == "Z" and h["leap_seconds"] == 0
     tags = dl.read_dld_tags(f)
     assert (tags["tick_ms"].diff().dropna() == 2000).all()               # 1000 samples / 2 s -> 500 sps
-    assert (tags["label_minus_tow_s"] == 2).all()                         # leap seconds not yet known
+    assert (tags["label_minus_tow_s"] == 1).all()                         # leap seconds not yet known
     st = dl.read_dld(f)
     tr = st[0]
     assert len(st) == 1 and tr.stats.sampling_rate == 500 and tr.stats.npts == len(tags) * 1000
@@ -198,12 +198,12 @@ def test_dld_header_tags_and_samples():
 
 
 def test_dld_labels_late_while_leap_seconds_unknown():
-    """Header leap_seconds = 0 -> text labels are 2 s ahead of TOW-derived UTC in every tag."""
+    """Header leap_seconds = 0 -> text labels are 1 s ahead of TOW-derived UTC in every tag."""
     import smartsolo_dld as dl
     for s in ("453004362", "453009194", "453010029", "453010047", "453010077", "453010167"):
         f = _dld(s, "seis000Z")
         assert dl.read_dld_header(f)["leap_seconds"] == 0
-        assert (dl.read_dld_tags(f)["label_minus_tow_s"] == 2).all()
+        assert (dl.read_dld_tags(f)["label_minus_tow_s"] == 1).all()
         assert len(dl.scan_dld(f, time_source="tow")) == 1
 
 
@@ -218,9 +218,9 @@ def test_dld_label_jump_excerpt():
     if f94.stat().st_size < 1000:
         pytest.skip("Git LFS files not pulled")
     tags = dl.read_dld_tags(f94)
-    assert list(tags["label_minus_tow_s"]) == [2.0] * 45 + [0.0] * 45
+    assert list(tags["label_minus_tow_s"]) == [1.0] * 45 + [-1.0] * 45
     assert len(dl.scan_dld(f94, time_source="label")) == 2 and len(dl.scan_dld(f94)) == 1
-    assert set(dl.read_dld_tags(f47)["label_minus_tow_s"]) == {0.0}
+    assert set(dl.read_dld_tags(f47)["label_minus_tow_s"]) == {-1.0}
     lags = {}
     for src in ("label", "tow"):
         t0, t1 = UTCDateTime("2023-04-07T00:57:20"), UTCDateTime("2023-04-07T00:58:20")

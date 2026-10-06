@@ -11,8 +11,8 @@ file:
 
 | file | blocks of the original file | text label − UTC from GPS time of week |
 |---|---|---|
-| `453009194_seis001Z_excerpt.DLD` | 2152–2241 | +2 s for 45 blocks, then 0 (jump at 00:58:37) |
-| `453010047_seis001Z_excerpt.DLD` | 2107–2196 | 0 throughout (its jump came at 23:56:09) |
+| `453009194_seis001Z_excerpt.DLD` | 2152–2241 | +1 s for 45 blocks, then −1 s (jump at 00:58:37) |
+| `453010047_seis001Z_excerpt.DLD` | 2107–2196 | −1 s throughout (its jump came at 23:56:09) |
 
 What it shows:
 

@@ -124,16 +124,15 @@ data keep that layout).
 - Format: 512-byte header, then [1000 × int24 samples + 72-byte tag]
   repeated; samples are contiguous across tags (checked on 250, 500 and
   1000 sps files). See [DLD_FORMAT.md](DLD_FORMAT.md).
-- The tag's **text time is unreliable at the 2-s level**: it is 2 s late
-  until the GPS receiver has learned the leap seconds, then jumps back 2 s
-  (header field 0x104 = 0 before, 18 after). Seen in a later 4-hour
+- The tag's **text time is unreliable at the 2-s level**: it jumps back 2 s
+  when the GPS receiver learns the leap seconds (header field 0x104 = 0
+  before, 18 after) – 1 s late before, 1 s early after (relative to TOW,
+  below). Seen in a later 4-hour
   recording of four break-test nodes (removed; jumps at 23:56, 00:21, 00:58
   and 02:38 UTC), in the V1.1.2 side-by-side test files and in all six
-  31 March break-test files (label 2 s late throughout, leap field 0).
+  31 March break-test files (label 1 s late throughout, leap field 0).
 - The tag's **GPS time of week (TOW)** is continuous. UTC = GPS week + TOW
-  − 1 s − (GPS−UTC) agrees exactly with the text time once the leap seconds
-  are known (the −1 s: TOW is the time of the *next* pulse, as in u-blox
-  TIM-TP). `smartsolo_dld` uses this by default (`time_source="tow"`).
+  − (GPS−UTC); `smartsolo_dld` uses this by default (`time_source="tow"`).
 - Proof: cross-correlating ambient noise between nodes every 10 min over
   the later 4-hour recording, text times gave lags of exactly ±2 s whenever
   one node's labels had jumped and the other's hadn't; TOW times gave
@@ -146,16 +145,14 @@ data keep that layout).
   decoded correctly.
 - The tag `counter` field resets to 0 at each GPS synchronisation and then
   counts 100 per second (time since the last sync in 10 ms units).
-- **Absolute timing is not verified.** Everything above concerns *relative*
-  timing (labels vs TOW, node vs node). The −1 s in the TOW formula was
-  chosen so that TOW agrees with the labels once the leap seconds are known;
-  no recording has yet been compared with an external time reference. A
-  huddle test by another group against permanent stations (S1.AUANU,
-  M8.AUANU) reports node data **1 s early** with the −1 s, i.e. TOW itself
-  (`smartsolo_dld.DEFAULTS["tow_offset_s"] = 0`) may be the time of the
-  samples. Note that at 1000 sps one block is also 1 s, so the same symptom
-  could come from the block convention below; a huddle test at 250 or
-  500 sps (block 4 or 2 s) separates the two.
+- **Absolute offset.** An earlier version used UTC = week + TOW − 1 s −
+  (GPS−UTC), chosen so that TOW agreed with the labels once the leap seconds
+  are known. A huddle test by another group against permanent stations
+  (S1.AUANU, M8.AUANU) showed node data **1 s early** with it, so the offset
+  is now 0 (`smartsolo_dld.DEFAULTS["tow_offset_s"]`, kept as a setting).
+  At 1000 sps one block is also 1 s, so the block convention below should
+  be confirmed independently (huddle test at 250 or 500 sps, or a SoloLite
+  export).
 - Still open: whether a tag marks the first sample of the block before it
   (`tag_marks="block_start"`, default) or after it – a constant shift of one
   block (1, 2 or 4 s). One SoloLite export of the same file settles it

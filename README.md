@@ -367,8 +367,9 @@ wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_forma
   stable fix). Log deployments are widened to cover the recorded data (the
   log's first record is ~45 s after recording starts).
 - **Timing**: tag times come from the GPS time of week (`time_source="tow"`,
-  default). The text time in the tags is 2 s late until the receiver knows
-  the leap seconds and then jumps back 2 s mid-file – cross-correlating
+  default, UTC = GPS week + TOW − leap seconds). The text time in the tags
+  is 1 s late until the receiver knows the leap seconds and then jumps back
+  2 s mid-file (1 s early after that) – cross-correlating
   nodes shows false 2-s offsets with text times and 0 ± 4 ms with TOW
   (example: `data/timing_example/`).
   Whether a tag marks the start (default `tag_marks="block_start"`) or the

@@ -38,10 +38,11 @@ Time tag (72 bytes, repeated after every 1000 samples)::
     +56  char[16] GPS time of week of the next GPS pulse, ms, as text
 
 * The sample rate is 1000 samples / (tick difference between tags).
-* **Tag time** (``time_source="tow"``, default): GPS week + TOW - 1 s -
-  (GPS-UTC). The text time (``"label"``) is 2 s late until the receiver has
-  learned the leap seconds and then jumps back 2 s; TOW is continuous and
-  consistent between nodes (see docs/FINDINGS.md).
+* **Tag time** (``time_source="tow"``, default): GPS week + TOW -
+  (GPS-UTC) (+ ``DEFAULTS["tow_offset_s"]``, 0). The text time (``"label"``)
+  is 1 s late until the receiver has learned the leap seconds, then jumps
+  back 2 s and is 1 s early; TOW is continuous and consistent between nodes
+  (see docs/FINDINGS.md).
 * **Block convention (to verify!)**: by default a tag is taken as the time
   of the *first sample of the block before it* (``tag_marks="block_start"``).
   The alternative ``"block_end"`` shifts every sample one block (1-4 s)
@@ -93,10 +94,10 @@ DLD_MAGIC = b"DTCCSZ-TEC-FTS"
 LFS_POINTER = b"version https://git-lfs"
 
 # Package-wide defaults (can be changed: smartsolo_dld.DEFAULTS["time_source"] = "label")
-# tow_offset_s: added to the GPS time of week. -1 makes TOW agree with the text labels once the
-# leap seconds are known; absolute timing against an external reference is NOT yet verified
-# (a huddle test against permanent stations reported data 1 s early with -1; see docs/FINDINGS.md).
-DEFAULTS = {"time_source": "tow", "tag_marks": "block_start", "tow_offset_s": -1.0}
+# tow_offset_s: added to the GPS time of week. 0 (since Oct 2026): a huddle test against permanent
+# stations showed data 1 s early with the earlier -1 s (which only made TOW agree with the text
+# labels). Kept as a setting for further tests with other firmware; see docs/FINDINGS.md.
+DEFAULTS = {"time_source": "tow", "tag_marks": "block_start", "tow_offset_s": 0.0}
 
 GPS_EPOCH = pd.Timestamp("1980-01-06", tz="UTC")
 # GPS - UTC leap seconds (date from which the value applies)
@@ -238,12 +239,11 @@ def _tags_from_buffer(buf, block, period, n, time_source=None) -> pd.DataFrame:
 def _tow_to_utc(label: pd.Series, tow_ms: pd.Series) -> pd.Series:
     """
     UTC of each tag from the GPS time of week: GPS week (from the label date)
-    + TOW + ``DEFAULTS["tow_offset_s"]`` (default -1 s) - (GPS-UTC). With -1 s
-    the TOW time agrees exactly with the text labels written after the
-    receiver knows the leap seconds (TOW read as the time of the *next* GPS
-    pulse, as in u-blox TIM-TP). Whether label/TOW-1 or TOW itself is the
-    time of the samples has not been verified against an external reference;
-    set ``DEFAULTS["tow_offset_s"] = 0.0`` to use TOW directly.
+    + TOW + ``DEFAULTS["tow_offset_s"]`` (default 0) - (GPS-UTC). A huddle
+    test against permanent stations matched with offset 0; the earlier -1 s
+    (which made TOW agree with the text labels once the leap seconds are
+    known) left the data 1 s early. The text labels are therefore 1 s late
+    before and 1 s early after the receiver learns the leap seconds.
     """
     out = []
     for lab, tow in zip(label, tow_ms):
