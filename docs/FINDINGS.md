@@ -140,9 +140,6 @@ data keep that layout).
   00:58:37, with the same minutes from 453010047, is kept in
   `data/timing_example/` (2-s lag with labels before the jump, 0 after and
   with TOW; `notebooks/dld_demo.ipynb`, test `test_dld_label_jump_excerpt`).
-- Two nodes 10 m apart started 4 s apart (Beijing test, 250 sps, removed
-  sample files): lag 0 samples, cc 0.96 (X), 0.93 (Z) – blocks and tags
-  decoded correctly.
 - The tag `counter` field resets to 0 at each GPS synchronisation and then
   counts 100 per second (time since the last sync in 10 ms units).
 - **Absolute offset.** An earlier version used UTC = week + TOW − 1 s −
@@ -158,7 +155,7 @@ data keep that layout).
   block (1, 2 or 4 s). One SoloLite export of the same file settles it
   (`smartsolo_dld.compare_with_export`).
 
-## Sample files seen (most now removed)
+## Sample files 
 
 | serial | site | data | key facts |
 |---|---|---|---|
@@ -166,5 +163,4 @@ data keep that layout).
 | 453022317 | DML | `seis001?.DLD`, 3 min | 1000 sps, header altitude 1642 m |
 | 453027665 | near Casey (−66.28, 110.53) | `seis006?.DLD`, 72 s | 1000 sps |
 | break-test nodes | Hobart, 6–7 Apr 2023 | `seis001?.DLD`, 4 h (removed; 3-min excerpts of two nodes in `data/timing_example/`) | label jumps, see DLD timing |
-| 453038428, 453038431 | Beijing test (39.596, 116.760) | logs + `seis000?.DLD` (removed) | 250 sps, 18 dB, side by side, 4 s apart |
 | 4530462xx, 4530261xx | short tests | logs only (removed; one V1.1.4 log kept as `tests/fixtures/DigiSolo_V1.1.4_GNSS.LOG`) | V1.1.2/V1.1.4, GNSS records, 500 sps, 36 dB |
