@@ -146,6 +146,16 @@ data keep that layout).
   decoded correctly.
 - The tag `counter` field resets to 0 at each GPS synchronisation and then
   counts 100 per second (time since the last sync in 10 ms units).
+- **Absolute timing is not verified.** Everything above concerns *relative*
+  timing (labels vs TOW, node vs node). The −1 s in the TOW formula was
+  chosen so that TOW agrees with the labels once the leap seconds are known;
+  no recording has yet been compared with an external time reference. A
+  huddle test by another group against permanent stations (S1.AUANU,
+  M8.AUANU) reports node data **1 s early** with the −1 s, i.e. TOW itself
+  (`smartsolo_dld.DEFAULTS["tow_offset_s"] = 0`) may be the time of the
+  samples. Note that at 1000 sps one block is also 1 s, so the same symptom
+  could come from the block convention below; a huddle test at 250 or
+  500 sps (block 4 or 2 s) separates the two.
 - Still open: whether a tag marks the first sample of the block before it
   (`tag_marks="block_start"`, default) or after it – a constant shift of one
   block (1, 2 or 4 s). One SoloLite export of the same file settles it

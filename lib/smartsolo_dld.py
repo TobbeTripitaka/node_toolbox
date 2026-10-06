@@ -93,7 +93,10 @@ DLD_MAGIC = b"DTCCSZ-TEC-FTS"
 LFS_POINTER = b"version https://git-lfs"
 
 # Package-wide defaults (can be changed: smartsolo_dld.DEFAULTS["time_source"] = "label")
-DEFAULTS = {"time_source": "tow", "tag_marks": "block_start"}
+# tow_offset_s: added to the GPS time of week. -1 makes TOW agree with the text labels once the
+# leap seconds are known; absolute timing against an external reference is NOT yet verified
+# (a huddle test against permanent stations reported data 1 s early with -1; see docs/FINDINGS.md).
+DEFAULTS = {"time_source": "tow", "tag_marks": "block_start", "tow_offset_s": -1.0}
 
 GPS_EPOCH = pd.Timestamp("1980-01-06", tz="UTC")
 # GPS - UTC leap seconds (date from which the value applies)
@@ -235,9 +238,12 @@ def _tags_from_buffer(buf, block, period, n, time_source=None) -> pd.DataFrame:
 def _tow_to_utc(label: pd.Series, tow_ms: pd.Series) -> pd.Series:
     """
     UTC of each tag from the GPS time of week: GPS week (from the label date)
-    + TOW - 1 s - (GPS-UTC). The -1 s: TOW is the time of the *next* GPS
-    pulse (as in u-blox TIM-TP); with it, labels written after the receiver
-    knows the leap seconds agree exactly with TOW (see docs/FINDINGS.md).
+    + TOW + ``DEFAULTS["tow_offset_s"]`` (default -1 s) - (GPS-UTC). With -1 s
+    the TOW time agrees exactly with the text labels written after the
+    receiver knows the leap seconds (TOW read as the time of the *next* GPS
+    pulse, as in u-blox TIM-TP). Whether label/TOW-1 or TOW itself is the
+    time of the samples has not been verified against an external reference;
+    set ``DEFAULTS["tow_offset_s"] = 0.0`` to use TOW directly.
     """
     out = []
     for lab, tow in zip(label, tow_ms):
@@ -246,7 +252,7 @@ def _tow_to_utc(label: pd.Series, tow_ms: pd.Series) -> pd.Series:
             continue
         leap = gps_utc_offset(lab)
         wk = np.floor(((lab - GPS_EPOCH).total_seconds() + leap) / 604800)
-        t = GPS_EPOCH + pd.Timedelta(seconds=wk * 604800 + tow / 1000.0 - 1 - leap)
+        t = GPS_EPOCH + pd.Timedelta(seconds=wk * 604800 + tow / 1000.0 + DEFAULTS["tow_offset_s"] - leap)
         # label and TOW near a week boundary: pick the week that puts t next to the label
         while (t - lab).total_seconds() > 302400:
             t -= pd.Timedelta(days=7)

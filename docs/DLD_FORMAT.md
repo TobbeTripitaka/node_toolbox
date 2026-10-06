@@ -91,6 +91,9 @@ Header bytes are identical in the X, Y and Z files of one recording.
   The text time (`time_source="label"`) is 2 s late before that and then
   jumps back 2 s mid-file – this creates false 2-s offsets between nodes
   (shown by cross-correlation in `notebooks/dld_demo.ipynb`).
+- **Absolute offset (unverified)**: the −1 s makes TOW agree with the
+  labels; an external huddle test reports data 1 s early with it. The offset
+  is `smartsolo_dld.DEFAULTS["tow_offset_s"]` (default −1.0; try 0.0).
 - **Block convention (unverified)**: `tag_marks="block_start"` (default)
   takes tag *k* as the time of the first sample of block *k* (the block
   before the tag). `"block_end"` shifts all samples one block earlier.
