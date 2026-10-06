@@ -1,7 +1,7 @@
 # node_toolbox
 Tools to work with SmartSolo node type geophones. Especially in Antarctic settings where logistical limitations constrain the deployment.
 
-Authors: Tobias Stål (UTAS), Robert Pickle (ANU)
+Authors: Tobias Stål (UTAS)
 
 - **`smartsolo_log`** – read `DigiSolo.LOG` state-of-health logs into pandas (temperature, voltage, GPS, tilt ... against time).
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
