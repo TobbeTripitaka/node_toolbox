@@ -62,7 +62,7 @@ def tex(s):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--repo", default=".", help="node_toolbox folder (default: current folder)")
-    ap.add_argument("--out", default="tab_perf.tex", help="LaTeX output file")
+    ap.add_argument("--out", default="tests/tab_perf.tex", help="LaTeX output file")
     ap.add_argument("--reps", type=int, default=5, help="repetitions for the fast DLD operations")
     ap.add_argument("--reps-slow", type=int, default=3, help="repetitions for logs, deployments and index")
     args = ap.parse_args()
