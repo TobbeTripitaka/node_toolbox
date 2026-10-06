@@ -1,12 +1,16 @@
 # node_toolbox
 Tools to work with SmartSolo node type geophones. Especially in Antarctic settings where logistical limitations constrain the deployment.
 
+Authors: Tobias Stål (UTAS), Robert Pickle (ANU)
+
 - **`smartsolo_log`** – read `DigiSolo.LOG` state-of-health logs into pandas (temperature, voltage, GPS, tilt ... against time).
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
 - **`smartsolo_node`** – read the other files in a node folder (script, `device.ini`, `PULSE_*.WAV`): test limits, geophone pulse-test analysis, boot-by-boot sensor QC, orientation, instrument response.
 - **`smartsolo_orientation`** – eCompass and tilt: circular statistics, rotation over time, boot vs settled heading, IGRF declination, writing azimuths to StationXML or rotating data.
 - **`smartsolo_dld`** – read raw SmartSolo `.DLD` data files directly (no SoloLite export), see [docs/DLD_FORMAT.md](docs/DLD_FORMAT.md). Independent, read-only implementation; see [docs/CLEAN_ROOM.md](docs/CLEAN_ROOM.md) for how it was made.
 - **`smartsolo_waveforms`** – index MiniSEED / SEG-Y files, cut the selected time windows for the selected nodes with ObsPy, apply SEED codes from a mapping table, write MiniSEED + StationXML.
+- **`smartsolo_batch`** – convert whole harvests to an SDS archive with a harvest database (or to window files), in parallel, from the command line or a notebook. After the harvest script.
+- **`smartsolo_config`** – all processing settings in one YAML/JSON file.
 
 See [Selecting stations and cutting waveforms](#selecting-stations-and-cutting-waveforms) below for the second part.
 
@@ -35,14 +39,19 @@ lib/smartsolo_waveforms.py            waveform index, extraction, StationXML
 lib/smartsolo_node.py                 node folder files, pulse test, geophone QC, response
 lib/smartsolo_orientation.py          eCompass / tilt tools
 lib/smartsolo_dld.py                  raw DLD reader
+lib/smartsolo_config.py               settings (YAML/JSON) for everything
+lib/smartsolo_batch.py                batch conversion -> SDS archive + harvest database
+examples/batch_settings.yaml          example settings file
 docs/DLD_FORMAT.md                    reverse-engineered DLD format
 notebooks/smartsolo_log_demo.ipynb    log parsing and plotting
 notebooks/select_and_extract_demo.ipynb  selection + waveform extraction
 notebooks/node_qc_demo.ipynb          pulse test, sensor QC, polarity, orientation, response
 notebooks/dld_demo.ipynb              raw DLD files -> MiniSEED / SEG-Y / StationXML, DLD timing
 notebooks/break_test.ipynb            the Land Cruiser break test: map, events, speeds, spectra, fun
+notebooks/batch_convert.ipynb         batch conversion of harvests to SDS / window files
 scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
 tests/test_toolbox.py                 pytest tests
+tests/test_batch.py                   timing, responses, settings, SDS batch tests
 data/break_test/                      6 nodes, raw DLD + logs + pulse tests (Git LFS):
                                       a Land Cruiser HJ60 braking (see data/break_test/README.md)
 data/nodes/<serial>/                  example logs, no waveform data (see data/nodes/README.md):
@@ -360,14 +369,24 @@ wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_forma
 - **Components**: X = north–south → `?PN`, Y = east–west → `?PE`, Z → `?PZ`.
 - **Polarity**: raw DLD counts have SmartSolo polarity; `extract_waveforms`
   multiplies by −1 (AusPass).
-- **Gain**: raw counts include the preamp gain (0–36 dB). It is put into the
-  response (`gain_db="auto"` uses the log's `Channel 1 Gain`); nodes without a
-  log are assumed 0 dB.
+- **Gain**: raw counts include the preamp gain (0–36 dB). By default they are
+  kept as integers and the gain is put into the response (`gain_db="auto"`
+  uses the log's `Channel 1 Gain`; a warning if the channels differ); nodes
+  without a log are assumed 0 dB (with a warning).
+  `extract_waveforms(remove_gain=True)` divides by 10^(gain/20) instead, as
+  SoloLite "Remove Gain" and the harvest script do – with integer MiniSEED this
+  rounds away resolution above 0 dB, so use `encoding="FLOAT32"` with it.
 - **Position without logs**: from the GPS positions in the tags (first
   stable fix). Log deployments are widened to cover the recorded data (the
   log's first record is ~45 s after recording starts).
-- **Timing**: tag times come from the GPS time of week (`time_source="tow"`,
-  default, UTC = GPS week + TOW − leap seconds). The text time in the tags
+- **Timing**: tag times come from the GPS week and time of week packed in
+  the binary tick (`tick = week << 32 | TOW ms`, found by R. Pickle;
+  `time_source="tow"`, default, UTC = GPS week + TOW − leap seconds), so they
+  are continuous across the weekly TOW rollover. Samples after the last tag
+  of a file that was cut short are kept (`DEFAULTS["include_trailing"]`).
+  `tags["sync_age_s"]` / `scan_dld(...)["max_sync_age_s"]`: time since the
+  last GPS synchronisation. A new leap second can be set with
+  `DEFAULTS["leap_seconds"]` (or `timing.leap_seconds` in a settings file). The text time in the tags
   is 1 s late until the receiver knows the leap seconds and then jumps back
   2 s mid-file (1 s early after that) – cross-correlating
   nodes shows false 2-s offsets with text times and 0 ± 4 ms with TOW
@@ -384,6 +403,49 @@ wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive", out_forma
 Newer firmware (V1.1.4) writes `[GNSSnnnnn]` records and `GNSS ...` keys; the
 log reader maps them to the GPS names, and handles `UTC Time = ","`,
 `Altitude = Unknown` and 3-value `ADC Sync Value`.
+
+## Batch conversion (SDS archive)
+
+`lib/smartsolo_batch.py` converts whole harvests (DLD and/or node MiniSEED +
+`DigiSolo.LOG`) in one go, configured by one settings file
+([examples/batch_settings.yaml](examples/batch_settings.yaml); all settings with
+explanations: `python lib/smartsolo_batch.py all.yaml x --template`). Demo:
+[notebooks/batch_convert.ipynb](notebooks/batch_convert.ipynb).
+
+```bash
+python lib/smartsolo_batch.py my_settings.yaml /media/harvest_01 /media/harvest_02 --dry-run
+python lib/smartsolo_batch.py my_settings.yaml /media/harvest_01 /media/harvest_02
+```
+```python
+import smartsolo_batch as sb
+summary = sb.run_batch(["/media/harvest_01"], "my_settings.yaml", output__root="/data/sds")
+```
+
+- **Default output**: SDS archive (`YEAR/NET/STA/CHA.D/NET.STA.LOC.CHA.D.YEAR.DOY`,
+  daily Steim-2, 4096-byte records) + `harvest.sqlite` + `stations.xml` +
+  `stations.csv` + `settings_used.yaml`. `output.layout: files` writes one
+  MiniSEED or SEG-Y file per window chunk instead.
+- **Harvest database**: every source file with size, modification time,
+  settings and the time span written, and every day file written. Reruns skip
+  what is done; new harvests are added to the same archive. Files converted
+  with other timing settings (e.g. the earlier −1 s TOW offset) are redone and
+  their old samples replaced. Deployments whose channel gains differ are not
+  converted (Ch1–3 → X/Y/Z is undocumented).
+- **Safe**: day files are merged (new data replace only what they overlap)
+  and written to `.part`, then moved in place. Source files are only read;
+  nothing outside the day files being updated is ever deleted.
+- **Parallel and bounded memory**: one worker process per station id;
+  each reads and writes one day and one component at a time. DLD files are
+  memory-mapped and their tags decoded once (vectorised) and cached.
+
+The SDS writer, harvest database, worker scheme, packed GPS week/TOW, trailing
+samples, GPS sync age, staged responses by device type and the reading of node
+MiniSEED with blank (never written) records follow the
+harvest script, re-implemented on the node_toolbox readers. Kept from
+node_toolbox: first stable position per power-up, raw counts with the gain in
+the response, no polarity flip for BD3C-5, ObsPy/SEG-Y/selection tools.
+On two break-test nodes (453004362, 453010029) both programs wrote identical SDS day files
+(same start times and samples).
 
 ## Node folder files, pulse test and sensor QC
 
@@ -440,14 +502,21 @@ inv = wf.build_inventory(sel, mapping="data/station_mapping.csv", response="ausp
 
 | `response=` | source |
 |---|---|
-| `"auspass"` (recommended) | AusPass/ANSIR published IGU-16HR 3C response: zeros 0, 0; poles −22.211059 ± 22.217768j (5.000 Hz, h 0.707); 257 019 225.55 counts/(m/s) flat gain, same for all channels/units, for polarity-flipped data in counts with gain removed |
+| `"auspass"` (default) | AusPass/ANSIR published IGU-16HR 3C response: zeros 0, 0; poles −22.211059 ± 22.217768j (5.000 Hz, h 0.707); 257 019 225.55 counts/(m/s) flat gain for polarity-flipped, gain-removed counts. Written as three stages: sensor 76.6 V/(m/s) → preamp 10^(gain/20) → ADC 3 355 342.4 counts/V |
+| `"dtcc"` | same stages with the DTCC data-sheet constants used in the harvest script: 76.6 V/(m/s) × 3 355 500 counts/V (0.005 % more sensitive than AusPass); for comparison with archives made by that script |
 | `"test"` | each deployment's own boot-time geophone test (if it passed and wasn't noisy), else nominal |
 | `"nominal"` | DT-SOLO data sheet: 5 Hz, h 0.70, 80 V/(m/s) × 3355.4428 counts/mV × gain |
 
-`geophone_response(f0, damping, sensitivity, gain_db)` builds the latter two.
-The anti-alias FIR is not included. All responses assume the preamp gain was
-removed at export ("Remove Gain" in SoloLite) – otherwise amplitudes are
-×15.85 at 24 dB.
+`geophone_response(f0, damping, sensitivity, gain_db)` builds the latter two,
+`staged_response(device_type, sampling_rate, gain_db, model)` the first two
+(BD3C-5 nodes get their own poles/zeros, 209.4 V/(m/s), instrument code `H`).
+The anti-alias FIR is not included. `gain_db` must match the data: the log
+gain for raw DLD counts (default, `gain_db="auto"`), 0 for exports with
+"Remove Gain" or `remove_gain=True` – otherwise amplitudes are ×15.85 off at
+24 dB. The AusPass constant is the default because it is the published,
+tested value; the three response constants in use (AusPass 257 019 226,
+DTCC manual 76.6 × 3 355 442.8 = 257 026 918, R. Pickle 257 031 300
+counts/(m/s)) differ by < 0.005 %.
 
 ## Polarity and channel naming
 

@@ -147,11 +147,11 @@ data keep that layout).
   counts 100 per second (time since the last sync in 10 ms units).
 - **Absolute offset.** An earlier version used UTC = week + TOW − 1 s −
   (GPS−UTC), chosen so that TOW agreed with the labels once the leap seconds
-  are known. A huddle test by another group against permanent stations
+  are known. A comparison by another group with co-located permanent stations
   (S1.AUANU, M8.AUANU) showed node data **1 s early** with it, so the offset
   is now 0 (`smartsolo_dld.DEFAULTS["tow_offset_s"]`, kept as a setting).
   At 1000 sps one block is also 1 s, so the block convention below should
-  be confirmed independently (huddle test at 250 or 500 sps, or a SoloLite
+  be confirmed independently (co-located test at 250 or 500 sps, or a SoloLite
   export).
 - Still open: whether a tag marks the first sample of the block before it
   (`tag_marks="block_start"`, default) or after it – a constant shift of one

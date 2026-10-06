@@ -71,7 +71,7 @@ Header bytes are identical in the X, Y and Z files of one recording.
 | offset | type | example | meaning |
 |---|---|---|---|
 | +0 | int32 | 0 | flag? |
-| +4 | int64 | 10106305104488 | tick, ms: +1000 per tag at 1000 sps, +4000 at 250 sps |
+| +4 | int64 | 10106305104488 | GPS time: upper 32 bits GPS week, lower 32 bits time of week in ms (= the TOW text at +56); +1000 per tag at 1000 sps, +4000 at 250 sps |
 | +12 | char[11] | `203718.00` | UTC time as text, whole seconds – 1 s late until the leap seconds are known, 1 s early after |
 | +23 | char[9] | `20250211` | UTC date |
 | +32 | float64 | −66.282305 | latitude |
@@ -83,8 +83,13 @@ Header bytes are identical in the X, Y and Z files of one recording.
 - Sample rate = 1000 samples / (tick step / 1000 s). This matches the log:
   `Sample Rate` in `DigiSolo.LOG` / the script is the **sample interval in
   10 µs units** (100 → 1 ms → 1000 sps; 400 → 4 ms → 250 sps; 200 → 500 sps).
-- The absolute tick value is not a linear clock across dates, so only its
-  differences are used.
+- The tick packs GPS week and TOW (`week << 32 | tow_ms`; recognised by
+  R. Pickle, ANU). Checked on every tag of all files here (V1.0.5,
+  V1.0.8, V1.1.2; 56 files, 121 476 tags): lower 32 bits = TOW text,
+  weeks 2255/2256 (V1.0.5), 2346 (V1.0.8), 2335/2353 (V1.1.2) match the dates. Continuity is checked on week × 604 800 000 + TOW, so the weekly
+  TOW rollover is not a gap.
+- Files cut short (power-off) can end with up to one block of samples after
+  the last tag; they are read with the timing of the last tag.
 - **UTC of a tag** (default, `time_source="tow"`): GPS week (from the text
   date) + TOW − (GPS−UTC, 18 s since 2017). This is continuous.
   The text time (`time_source="label"`) is 1 s late until the receiver knows
@@ -92,7 +97,7 @@ Header bytes are identical in the X, Y and Z files of one recording.
   creates false 2-s offsets between nodes (shown by cross-correlation in
   `notebooks/dld_demo.ipynb`).
 - **Absolute offset**: an earlier version subtracted 1 s so that TOW agreed
-  with the labels once the leap seconds are known; a huddle test against
+  with the labels once the leap seconds are known; a comparison with co-located
   permanent stations (S1.AUANU, M8.AUANU) showed the data 1 s early with it,
   so the offset is now 0 (`smartsolo_dld.DEFAULTS["tow_offset_s"]`, kept as
   a setting for tests with other firmware).

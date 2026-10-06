@@ -39,7 +39,7 @@ told otherwise. The test consists of
 Conversion: 3355.4428 counts/mV at 0 dB preamp gain (SmartSolo manual), i.e.
 2^23 counts per 2.5 V.
 
-Tobias Stål 2023-2026
+Tobias Stål (UTAS), Robert Pickle (ANU) 2023-2026
 """
 
 from __future__ import annotations
@@ -66,6 +66,9 @@ __all__ = [
     "read_node_folder",
     "find_node_folders",
     "geophone_response",
+    "staged_response",
+    "instrument_code",
+    "is_bd3c",
     "magnetic_declination",
 ]
 
@@ -435,6 +438,81 @@ def auspass_response(normalization_frequency: float = 15.0, gain_db: float = 0.0
     p = AUSPASS_16HR3C
     return _paz_response(p["zeros"], p["poles"], p["sensitivity"] * 10 ** (gain_db / 20.0),
                          normalization_frequency)
+
+
+# --------------------------------------------------------------------------- #
+# Staged responses by device type (structure after R. Pickle, ANU)
+# --------------------------------------------------------------------------- #
+# Sensor stage M/S -> V, optional preamp stage V -> V (10^(gain/20); 1 when the gain was
+# removed from the data), ADC stage V -> COUNTS. Overall sensitivity = product of the stages.
+#
+# IGU-16HR 3C / 1C (5 Hz geophone):
+#   "auspass"  (default) AusPass/ANSIR published response: poles -22.211059 +- 22.217768j,
+#              zeros 0, 0, overall 257 019 225.55 counts/(m/s) for gain-removed counts.
+#              Split into 76.6 V/(m/s) (DTCC sensor) x 257019225.55 / 76.6 = 3 355 342.4 counts/V.
+#   "dtcc" DTCC data-sheet values used in the harvest script: 76.6 V/(m/s) x 3 355 500 counts/V
+#              (0.005 % higher). The DTCC manual's 3355.4428 counts/mV lies between the two.
+# IGU-16 BD3C-5 (5 s sensor): poles/zeros, 209.4042 V/(m/s), 3 355 478.9 counts/V (R. Pickle).
+GEOPHONE_PAZ = dict(zeros=[0j, 0j], poles=[complex(-22.211059, 22.217768),
+                                            complex(-22.211059, -22.217768)])
+RESPONSE_CONSTANTS = {
+    "auspass": dict(sensor_v_per_ms=76.6, adc_counts_per_v=257019225.55108312 / 76.6),
+    "dtcc": dict(sensor_v_per_ms=76.6, adc_counts_per_v=3355500.0),
+}
+BD3C_5S = dict(zeros=[complex(14164, 0), complex(-7162, 0), 0j, 0j],
+               poles=[complex(-1720.4, 0), complex(-1.2, 0.9), complex(-1.2, -0.9)],
+               norm_factor=-1.6972550464130542e-05, norm_freq=10.0,
+               sensor_v_per_ms=209.4042, adc_counts_per_v=3355478.9)
+# device_type (as in sct_par.xml / the log) -> SEED instrument code
+INSTRUMENT_CODES = {"IGU-16HR 3C 5Hz": "P", "IGU-16HR 1C 5Hz": "P", "IGU-16 BD3C 5s": "H"}
+
+
+def is_bd3c(device_type) -> bool:
+    return "BD3C" in str(device_type or "").upper()
+
+
+def instrument_code(device_type) -> str:
+    """SEED instrument code: P (geophone) for IGU-16HR, H for the BD3C-5 seismometer."""
+    return INSTRUMENT_CODES.get(str(device_type or "").strip(), "H" if is_bd3c(device_type) else "P")
+
+
+def staged_response(device_type="IGU-16HR 3C 5Hz", sampling_rate: float = 250.0,
+                    gain_db: float = 0.0, model: str = "auspass",
+                    normalization_frequency: float = 15.0):
+    """
+    Three-stage ObsPy ``Response`` (sensor, preamp, ADC) for a node type.
+    ``gain_db`` is the preamp gain *contained in the data*: the log value for
+    raw DLD counts, 0 when the gain was removed. ``model`` = ``"auspass"``
+    (default) or ``"dtcc"`` for the IGU-16HR; ignored for the BD3C-5.
+    """
+    from obspy.core.inventory.response import (CoefficientsTypeResponseStage, InstrumentSensitivity,
+                                               PolesZerosResponseStage, Response, ResponseStage)
+    if is_bd3c(device_type):
+        c = BD3C_5S
+        zeros, poles, fn, nf = c["zeros"], c["poles"], c["norm_freq"], c["norm_factor"]
+        s_gain, a_gain = c["sensor_v_per_ms"], c["adc_counts_per_v"]
+    else:
+        c = RESPONSE_CONSTANTS[model]
+        zeros, poles, fn = GEOPHONE_PAZ["zeros"], GEOPHONE_PAZ["poles"], normalization_frequency
+        nf = 1.0 / _shape_at(fn, zeros, poles)
+        s_gain, a_gain = c["sensor_v_per_ms"] / nf, c["adc_counts_per_v"]   # flat HF gain = 76.6
+    g = 10 ** (float(gain_db) / 20.0)
+    stages = [
+        PolesZerosResponseStage(1, s_gain, fn, "M/S", "V", input_units_description="Velocity",
+                                output_units_description="Volts",
+                                pz_transfer_function_type="LAPLACE (RADIANS/SECOND)",
+                                normalization_frequency=fn, normalization_factor=nf,
+                                zeros=list(zeros), poles=list(poles)),
+        ResponseStage(2, g, fn, "V", "V", description=f"preamp gain {gain_db:g} dB in the data"),
+        CoefficientsTypeResponseStage(3, a_gain, fn, "V", "COUNTS", "DIGITAL", numerator=[],
+                                      denominator=[], decimation_input_sample_rate=float(sampling_rate),
+                                      decimation_factor=1, decimation_offset=0, decimation_delay=0.0,
+                                      decimation_correction=0.0),
+    ]
+    resp = Response(instrument_sensitivity=InstrumentSensitivity(
+        s_gain * g * a_gain, fn, "M/S", "COUNTS"), response_stages=stages)
+    resp.recalculate_overall_sensitivity(fn)
+    return resp
 
 
 def magnetic_declination(lat, lon, time, elevation_m: float = 0.0) -> float:

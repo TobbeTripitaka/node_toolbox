@@ -44,7 +44,7 @@ SEED conventions for a geophone (instrument code ``P``): 1000-5000 Hz -> ``G``,
 250-1000 Hz -> ``D``, 80-250 Hz -> ``E``, 10-80 Hz -> ``S`` (e.g. ``EPZ`` at
 100 Hz, ``DPZ`` at 250/500 Hz).
 
-Tobias Stål 2023-2026
+Tobias Stål (UTAS), Robert Pickle (ANU) 2023-2026
 """
 
 from __future__ import annotations
@@ -213,7 +213,8 @@ def index_waveforms(root, serial_from=None, component_func=None, mapping=None, e
                 print("indexed", f)
             continue
         try:
-            st = read(str(f), format=fmt, headonly=True)
+            st = (read_mseed_robust(f, headonly=True) if fmt == "MSEED"
+                  else read(str(f), format=fmt, headonly=True))
         except Exception as exc:  # noqa: BLE001 - keep going on a bad file
             warnings.warn(f"could not read {f}: {exc}")
             continue
@@ -295,12 +296,13 @@ def band_code(sampling_rate: float) -> str:
 
 
 def seed_codes(serial, time=None, mapping=None, sampling_rate=100.0, component="Z",
-               component_map=None, default_network="XX"):
+               component_map=None, default_network="XX", device_type=None, default_location=""):
     """
     ``(network, station, location, channel)`` for a node serial at ``time``.
 
     Without a mapping row the station is the last 5 digits of the serial and
-    the network ``default_network`` (a warning is issued).
+    the network ``default_network`` (a warning is issued). The instrument code
+    follows ``device_type``: ``P`` for IGU-16HR geophones, ``H`` for BD3C-5.
     """
     component_map = component_map or DEFAULT_COMPONENT_MAP
     comp = component_map.get(component, component)
@@ -315,18 +317,61 @@ def seed_codes(serial, time=None, mapping=None, sampling_rate=100.0, component="
         if len(m):
             row = m.iloc[0]
     if row is None:
-        warnings.warn(f"serial {serial} not in mapping table - using {default_network}.{serial[-5:]}")
-        net, sta, loc, prefix = default_network, serial[-5:], "", ""
+        if mapping is not None:
+            warnings.warn(f"serial {serial} not in mapping table - using {default_network}.{serial[-5:]}")
+        net, sta, loc, prefix = default_network, serial[-5:], default_location, ""
     else:
         net, sta, loc, prefix = row["network"], row["station"], row["location"], row["channel_prefix"]
     if not prefix:
-        prefix = band_code(sampling_rate) + "P"
+        import smartsolo_node as sn
+        prefix = band_code(sampling_rate) + sn.instrument_code(device_type)
     return net, sta, loc, f"{prefix}{comp}"
 
 
 # --------------------------------------------------------------------------- #
 # Extraction
 # --------------------------------------------------------------------------- #
+_MSEED_QUALITY = (b"D", b"R", b"Q", b"M")
+
+
+def read_mseed_robust(path, **kw):
+    """
+    ObsPy ``read`` for node MiniSEED, falling back to reading only valid
+    records: SmartSolo FIFO storage can leave zero-filled (never written)
+    records at the end of a file, which make ObsPy fail (after
+    R. Pickle, ANU).
+    """
+    import io
+
+    from obspy import read
+    try:
+        return read(str(path), format="MSEED", **kw)
+    except Exception:  # noqa: BLE001
+        raw = Path(path).read_bytes()
+        reclen = _mseed_record_length(raw[:256])
+        good = b"".join(raw[i:i + reclen] for i in range(0, len(raw) - reclen + 1, reclen)
+                        if raw[i + 6:i + 7] in _MSEED_QUALITY)
+        if not good:
+            raise
+        return read(io.BytesIO(good), format="MSEED", **kw)
+
+
+def _mseed_record_length(head: bytes) -> int:
+    """Record length from blockette 1000 of the first record (default 512)."""
+    import struct
+    if len(head) < 48:
+        return 512
+    nblk, off = head[39], struct.unpack(">H", head[46:48])[0]
+    for _ in range(nblk):
+        if off == 0 or off + 8 > len(head):
+            break
+        btype, nxt = struct.unpack(">HH", head[off:off + 4])
+        if btype == 1000:
+            return 2 ** head[off + 6]
+        off = nxt
+    return 512
+
+
 def _read_window(path, fmt, t0, t1, tag_marks=None):
     from obspy import read
 
@@ -338,7 +383,7 @@ def _read_window(path, fmt, t0, t1, tag_marks=None):
             tr.stats.pop("coordinates", None)
             tr.stats.gain_removed = False
     elif fmt == "MSEED":
-        st = read(path, format="MSEED", starttime=t0, endtime=t1)
+        st = read_mseed_robust(path, starttime=t0, endtime=t1)
     else:
         st = read(path, format=fmt)
         for tr in st:  # drop SEG-Y specific headers -> plain ObsPy traces
@@ -354,7 +399,8 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
                       merge_method: int = 1, fill_value=None, return_stream: bool = True,
                       default_network: str = "XX", encoding=None, component_func=None,
                       invert_polarity="auto", out_format: str = "MSEED",
-                      tag_marks: str | None = None, verbose: bool = False):
+                      tag_marks: str | None = None, verbose: bool = False,
+                      remove_gain: bool = False, default_location: str = ""):
     """
     Cut waveforms for the selected deployments.
 
@@ -399,6 +445,13 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
         Use ``build_inventory(..., polarity_inverted=...)`` with the same choice.
     component_func : callable(path, trace) -> str, optional
         Same function as given to :func:`index_waveforms`, if any.
+    remove_gain : bool
+        False (default): keep raw counts; the preamp gain then belongs in the
+        response (``build_inventory`` does this). True: divide raw DLD counts
+        by 10^(gain/20) as SoloLite "Remove Gain" / the harvest script. With integer
+        output (STEIM2) the result is rounded, which loses resolution at
+        gains > 0 dB - use ``encoding="FLOAT32"`` to keep it. Recorded in
+        ``stats.gain_removed`` and ``stats.processing``.
     return_stream : bool
         Set False for very large extractions written to disk, to save memory.
 
@@ -447,7 +500,8 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
                     continue
                 net, sta, loc, cha = seed_codes(dep["serial"], _pd(t0), mapping,
                                                 tr.stats.sampling_rate, comp,
-                                                component_map, default_network)
+                                                component_map, default_network,
+                                                dep.get("device_type"), default_location)
                 tr.stats.network, tr.stats.station = net, sta
                 tr.stats.location, tr.stats.channel = loc, cha
                 st.append(tr)
@@ -455,20 +509,27 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
             continue
         st.merge(method=merge_method, fill_value=fill_value)
         st.trim(t0, t1 - _EPS, nearest_sample=False)   # end is exclusive
-        flip = invert_polarity
-        if flip == "auto":
-            dtype = dep.get("device_type", np.nan)
-            if pd.isna(dtype) or not str(dtype):
-                flip = not str(dep["serial"]).startswith("5900")    # BD3C-5 needs no flip
-            else:
-                flip = "BD3C" not in str(dtype)
+        flip = _resolve_flip(dep, invert_polarity)
         for tr in st:
             tr.stats.polarity_inverted = bool(flip)
             if flip:
                 tr.data = -tr.data
                 tr.stats.processing = list(getattr(tr.stats, "processing", [])) + [
                     "node_toolbox: polarity inverted (x -1), SmartSolo IGU-16HR -> FDSN convention"]
+        gain = _deployment_gain(dep)
         for tr in st:
+            if remove_gain and gain and not getattr(tr.stats, "gain_removed", False):
+                y = tr.data.astype(np.float64) / 10 ** (gain / 20.0)
+                if (encoding or "STEIM2").upper() in ("STEIM1", "STEIM2", "INT32"):
+                    tr.data = np.clip(np.rint(y), -2**31, 2**31 - 1).astype(np.int32)
+                    note = "rounded to int32"
+                else:
+                    tr.data = y.astype(np.float32)
+                    note = "float32"
+                tr.stats.processing = list(getattr(tr.stats, "processing", [])) + [
+                    f"node_toolbox: preamp gain {gain:g} dB removed (/ {10 ** (gain / 20):.4f}), {note}"]
+            tr.stats.gain_removed = bool(remove_gain) or bool(getattr(tr.stats, "gain_removed", False))
+            tr.stats.gain_db = 0.0 if tr.stats.gain_removed else gain
             tr.stats.coordinates = AttribDict(latitude=float(dep["latitude"]),
                                               longitude=float(dep["longitude"]),
                                               elevation=float(dep["elevation"]))
@@ -486,6 +547,29 @@ def extract_waveforms(selection, index: pd.DataFrame, mapping=None, start=None, 
     return out
 
 
+def _resolve_flip(dep, invert_polarity) -> bool:
+    """``invert_polarity="auto"``: x -1 for IGU-16HR, not for BD3C-5 (serial 5900... when
+    the device type is unknown)."""
+    if invert_polarity != "auto":
+        return bool(invert_polarity)
+    dtype = dep.get("device_type", np.nan)
+    if dtype is None or (isinstance(dtype, float) and pd.isna(dtype)) or not str(dtype):
+        return not str(dep["serial"]).startswith("5900")
+    return "BD3C" not in str(dtype)
+
+
+def _deployment_gain(dep) -> float:
+    """Preamp gain (dB) of a deployment from the log/script (``channel_1_gain`` ...);
+    warns if the channels differ (the Ch1-3 -> X/Y/Z mapping is not documented)."""
+    gains = [dep.get(f"channel_{i}_gain") for i in (1, 2, 3)]
+    gains = [float(g) for g in gains if g is not None and pd.notna(g)]
+    if not gains:
+        warnings.warn(f"{dep.get('serial')}: preamp gain unknown (no log) - assuming 0 dB")
+    if len(set(gains)) > 1:
+        warnings.warn(f"{dep.get('serial')}: channel gains differ {gains} - using channel 1")
+    return gains[0] if gains else 0.0
+
+
 def _segy_pieces(sub):
     """Split traces into <= 32767 samples, starting on whole seconds when possible."""
     from obspy import Stream
@@ -500,7 +584,7 @@ def _segy_pieces(sub):
             piece.data = tr.data[i:i + n]
             piece.stats.starttime = tr.stats.starttime + i / sr
             for k in ("coordinates", "processing", "serial", "deployment_id", "polarity_inverted",
-                      "gain_removed", "dld", "mseed"):
+                      "gain_removed", "gain_db", "dld", "mseed"):
                 piece.stats.pop(k, None)
             if piece.data.dtype.kind == "i":
                 piece.data = piece.data.astype(np.int32)
@@ -565,7 +649,7 @@ _ORIENT_RAW = {"Z": (0.0, 90.0), "N": (180.0, 0.0), "E": (270.0, 0.0)}    # raw 
 def build_inventory(selection, mapping=None, components=("Z", "N", "E"), sampling_rate=None,
                     stream=None, default_network: str = "XX", source: str = "node_toolbox",
                     response: str | None = None, gain_db="auto",
-                    polarity_inverted: bool = True):
+                    polarity_inverted=True):
     """
     Build an ObsPy Inventory (StationXML) for the selected deployments:
     one Station per deployment (start/end dates = deployment time span,
@@ -580,13 +664,18 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
       * ``True`` (default): data were multiplied by -1, so the channels follow
         the FDSN convention: Z dip -90 (up positive), N azimuth 0, E azimuth 90;
       * ``False``: raw SmartSolo polarity, described in the metadata instead:
-        Z dip +90 (down positive), N azimuth 180, E azimuth 270.
+        Z dip +90 (down positive), N azimuth 180, E azimuth 270;
+      * ``"auto"``: per deployment as ``extract_waveforms(invert_polarity="auto")``.
 
     ``response``:
       * ``None`` (default) - no instrument response (data stay in counts);
       * ``"auspass"`` - the AusPass/ANSIR published IGU-16HR 3C response
-        (5 Hz, h 0.707, 257 019 226 counts/(m/s)); assumes the preamp gain was
-        removed at export ("Remove Gain" in SoloLite);
+        (5 Hz, h 0.707, 257 019 226 counts/(m/s) for gain-removed counts) as
+        three stages: sensor 76.6 V/(m/s), preamp 10^(gain/20), ADC
+        3 355 342.4 counts/V (``smartsolo_node.staged_response``);
+      * ``"dtcc"`` - the same structure with DTCC data-sheet values as in
+        the harvest script (ADC 3 355 500 counts/V, 0.005 % higher);
+        BD3C-5 nodes get their own poles/zeros with either option;
       * ``"nominal"`` - DT-SOLO 5 Hz data-sheet values (5 Hz, h 0.70,
         80 V/m/s) + 3355.4428 counts/mV × gain;
       * ``"test"`` - the mean f0 / damping / sensitivity of the boot-time
@@ -621,12 +710,13 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
             chans = []
             for comp in components:
                 n, s, l, c = seed_codes(dep["serial"], _pd(t0), mapping, sr, comp,
-                                        None, default_network)
+                                        None, default_network, dep.get("device_type"))
                 chans.append((n, s, l, c, float(sr)))
         if not chans:
             continue
         net_code, sta_code = chans[0][0], chans[0][1]
-        sensor = Equipment(type="Geophone", description=str(dep.get("device_type", "SmartSolo")),
+        import smartsolo_node as _sn
+        sensor = Equipment(type="Seismometer" if _sn.is_bd3c(dep.get("device_type")) else "Geophone", description=str(dep.get("device_type", "SmartSolo")),
                            manufacturer="DTCC SmartSolo", serial_number=str(dep["serial"]))
         elev = float(dep["elevation"]) if pd.notna(dep.get("elevation", np.nan)) else 0.0
         sta = Station(code=sta_code, latitude=float(dep["latitude"]),
@@ -642,11 +732,12 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
             if stream is not None:
                 trs_ = [tr for tr in stream if getattr(tr.stats, "serial", None) == str(dep["serial"])]
                 removed = any(getattr(tr.stats, "gain_removed", False) for tr in trs_)
-            g = 0.0 if removed else float(dep.get("channel_1_gain", 0) or 0)
+            g = 0.0 if removed else _deployment_gain(dep)
             if pd.isna(g):
                 g = 0.0
-        if response == "auspass":
-            resp = sn.auspass_response(gain_db=g)
+        if response in ("auspass", "dtcc"):
+            resp = sn.staged_response(dep.get("device_type") or "IGU-16HR 3C 5Hz", float(sr), g,
+                                      model=response)
         elif response is not None:
             pars = dict(f0=sn.NOMINAL_5HZ["f0"], damping=sn.NOMINAL_5HZ["damping"],
                         sensitivity=sn.NOMINAL_5HZ["sensitivity"])
@@ -655,7 +746,7 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
                 pars = dict(f0=dep["test_resonate_freq_hz_mean"], damping=dep["test_damping_mean"],
                             sensitivity=dep["test_sensitivity_mean"])
             resp = sn.geophone_response(pars["f0"], pars["damping"], pars["sensitivity"], g)
-        orient = _ORIENT if polarity_inverted else _ORIENT_RAW
+        orient = _ORIENT if _resolve_flip(dep, polarity_inverted) else _ORIENT_RAW
         for n, s, l, c, rate in chans:
             az, dip = orient.get(c[-1], (0.0, 0.0))
             sta.channels.append(Channel(

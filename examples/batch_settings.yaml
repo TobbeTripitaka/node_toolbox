@@ -1,0 +1,26 @@
+# Example settings for smartsolo_batch / notebooks/batch_convert.ipynb.
+# Only values that differ from the defaults are needed; run
+#   python lib/smartsolo_batch.py all_settings.yaml x --template
+# for a commented list of every setting.
+
+timing:
+  tow_offset_s: 0.0          # 0 matches co-located permanent stations (R. Pickle, ANU)
+
+data:
+  invert_polarity: auto      # x -1 for IGU-16HR, not for BD3C-5
+  remove_gain: false         # keep raw counts; the gain goes into the response
+  encoding: STEIM2
+
+metadata:
+  network: XX
+  mapping: null              # e.g. stations.csv: serial,network,station,...
+  # AusPass/ANSIR published response by default. "dtcc" uses the DTCC data-sheet
+  # constants (ADC 3 355 500 counts/V, 0.005 % more sensitive) - see smartsolo_node.
+  response: auspass
+
+output:
+  layout: sds                # or "files" for one MiniSEED/SEG-Y file per window
+  root: ../output/sds_demo
+
+batch:
+  workers: 4
