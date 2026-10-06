@@ -3,6 +3,8 @@ Tools to work with SmartSolo node type geophones. Especially in Antarctic settin
 
 Authors: Tobias Stål (UTAS)
 
+---
+
 - **`smartsolo_log`** – read `DigiSolo.LOG` state-of-health logs into pandas (temperature, voltage, GPS, tilt ... against time).
 - **`smartsolo_locate`** – work out where and when each node recorded (one *deployment* per power-up, first stable GPS fix) and select deployments by radius, polygon and time.
 - **`smartsolo_node`** – read the other files in a node folder (script, `device.ini`, `PULSE_*.WAV`): test limits, geophone pulse-test analysis, boot-by-boot sensor QC, orientation, instrument response.
@@ -449,7 +451,7 @@ On two break-test nodes (453004362, 453010029) both programs wrote identical SDS
 
 ## Node folder files, pulse test and sensor QC
 
-`lib/smartsolo_node.py` reads the small files every node writes next to
+`lib/smartsolo_node.py` reads teh small files every node writes next to
 `DigiSolo.LOG`:
 
 | file | content | function |
