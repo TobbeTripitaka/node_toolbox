@@ -25,5 +25,5 @@ What it shows:
 - With `time_source="tow"` (the default), the file is one continuous segment
   and the lag between the nodes is 0 throughout.
 
-See `notebooks/dld_demo.ipynb` and `test_dld_label_jump_excerpt` in
+See `notebooks/tutorials/dld_demo.ipynb` and `test_dld_label_jump_excerpt` in
 `tests/test_toolbox.py`.

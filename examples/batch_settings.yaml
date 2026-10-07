@@ -1,4 +1,4 @@
-# Example settings for smartsolo_batch / notebooks/batch_convert.ipynb.
+# Example settings for smartsolo_batch / notebooks/tutorials/batch_convert.ipynb.
 # Only values that differ from the defaults are needed; run
 #   python lib/smartsolo_batch.py all_settings.yaml x --template
 # for a commented list of every setting.

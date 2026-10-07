@@ -16,6 +16,84 @@ Authors: Tobias Stål (UTAS)
 
 See [Selecting stations and cutting waveforms](#selecting-stations-and-cutting-waveforms) below for the second part.
 
+## Notebooks
+
+The functionality is best shown through the notebooks in
+[`notebooks/`](notebooks/): five **tutorials**, in the order of a typical
+workflow, and a **case study**. They use only the data in this repository and
+are stored with their outputs, so they can be read on GitHub without running
+them. To run them, start Jupyter in their folder after `git lfs pull` (the DLD,
+batch and break-test notebooks read the raw DLD files).
+
+### Tutorials
+
+| Notebook | What it demonstrates | Data |
+|---|---|---|
+| [1. Reading logs](notebooks/tutorials/smartsolo_log_demo.ipynb) | Parsing `DigiSolo.LOG` into one wide, UTC-indexed DataFrame; checking the record counters in `df.attrs`; plotting temperature, battery voltage, GPS and tilt against time with pandas or `plot_series`; time windows and resampling; one record type at a time; expanding list fields (satellite IDs, signal strength); errors and notifications; several nodes at once; device metadata per boot (firmware, script, boot-time geophone test); export to CSV or Parquet | Antarctic logs (`data/nodes/`) |
+| [2. Deployments, selection and extraction](notebooks/tutorials/select_and_extract_demo.ipynb) | Finding logs anywhere on a drive by their content; one deployment per power-up at the first stable GPS fix, and why cold-start fixes are skipped; position drift; selection by radius, polygon (shapely, GeoJSON, GeoPackage ...) and time; a cached waveform index; cutting windows with SEED codes from a mapping table; daily or hourly output without holding the data in memory; StationXML and station tables; the one-call `extract_region` | Antarctic logs + synthetic MiniSEED |
+| [3. Raw DLD files](notebooks/tutorials/dld_demo.ipynb) | The DLD header (serial, firmware, start/end, position when the file was closed); the per-block time tags (GPS week and time of week, text time, position, time since GPS sync); why the text time is 1 s off and jumps 2 s while the GPS time of week does not, shown with the excerpts in `data/timing_example/`; reading samples and their continuity across tags; deployments from DLD positions; export to MiniSEED, SEG-Y and StationXML; `convert_dld` for a whole drive | break test, timing excerpts |
+| [4. Batch conversion](notebooks/tutorials/batch_convert.ipynb) | The settings file (YAML/JSON) and a template of all settings; AusPass vs DTCC response constants and gain handling; a dry run; converting six nodes in parallel to an SDS archive; the harvest database (runs, source files, day files); reruns that skip converted files and redo files converted with other timing settings without duplicating samples; reading the archive with an ObsPy SDS client and removing the response; GPS sync diagnostics; window files (SEG-Y) instead of SDS; the command line | break test |
+| [5. Node QC and orientation](notebooks/tutorials/node_qc_demo.ipynb) | What a node folder contains (`device.ini`, acquisition scripts, `PULSE_*.WAV`); test limits from the script; the pulse test read at its true 1000 sps, damped-oscillator fits of natural frequency and damping, and the noise floor in µV; polarity and channel naming (AusPass/ANSIR); boot-by-boot geophone QC, the effect of temperature on coil resistance, and noisy tests; eCompass and tilt with circular statistics, slow rotation and IGRF declination; azimuths in StationXML; instrument response options | Antarctic nodes (`data/nodes/`) |
+
+### Case study
+
+| Notebook | What it demonstrates | Data |
+|---|---|---|
+| [Break test](notebooks/case_studies/break_test.ipynb) | A complete analysis of six nodes read straight from their DLD files: positions and pick-up times from the GPS in the time tags; node health from logs and pulse tests; event detection on node pairs and apparent vehicle speeds; the ten strongest stops; record section, spectrogram and stacked spectrum; particle motion; engine speed from the firing tone; a search for a laughing baby; the signal as audio | break test (`data/break_test/`) |
+
+## Install
+
+```bash
+git clone https://github.com/TobbeTripitaka/node_toolbox.git
+cd node_toolbox
+git lfs install && git lfs pull      # raw DLD sample data (~45 MB, Git LFS)
+pip install -r requirements.txt
+pytest -q tests                      # 23 tests, about 30 s
+```
+
+No packaging is needed yet; put `lib/` on the Python path:
+
+```python
+import sys
+sys.path.insert(0, "path/to/node_toolbox/lib")
+import smartsolo_log as sl
+```
+
+
+## Repository layout
+
+```
+lib/smartsolo_log.py                  log parser
+lib/smartsolo_locate.py               deployments, radius/polygon/time selection
+lib/smartsolo_waveforms.py            waveform index, extraction, StationXML
+lib/smartsolo_node.py                 node folder files, pulse test, geophone QC, response
+lib/smartsolo_orientation.py          eCompass / tilt tools
+lib/smartsolo_dld.py                  raw DLD reader
+lib/smartsolo_config.py               settings (YAML/JSON) for everything
+lib/smartsolo_batch.py                batch conversion -> SDS archive + harvest database
+examples/batch_settings.yaml          example settings file
+docs/DLD_FORMAT.md                    reverse-engineered DLD format
+notebooks/README.md                              list of the notebooks
+notebooks/tutorials/smartsolo_log_demo.ipynb     logs -> pandas, plots, device metadata
+notebooks/tutorials/select_and_extract_demo.ipynb  deployments, selection, waveform extraction, StationXML
+notebooks/tutorials/dld_demo.ipynb               raw DLD files, timing, MiniSEED / SEG-Y export
+notebooks/tutorials/batch_convert.ipynb          harvests -> SDS archive + harvest database
+notebooks/tutorials/node_qc_demo.ipynb           pulse test, geophone QC, polarity, orientation, response
+notebooks/case_studies/break_test.ipynb          a Land Cruiser braking beside six nodes
+scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
+tests/test_toolbox.py                 pytest tests
+tests/test_batch.py                   timing, responses, settings, SDS batch tests
+data/break_test/                      6 nodes, raw DLD + logs + pulse tests (Git LFS):
+                                      a Land Cruiser HJ60 braking (see data/break_test/README.md)
+data/nodes/<serial>/                  example logs, no waveform data (see data/nodes/README.md):
+  453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
+tests/fixtures/                       a V1.1.4 log with GNSS records (parser test)
+docs/FINDINGS.md                      everything learned from the files, with numbers
+data/timing_example/                  two 3-min DLD excerpts showing the 2-s label jump (Git LFS)
+paper/                                make_figures.py and figures/ (figures for the software report)
+```
+
+
 ## SmartSolo log reader
 
 `lib/smartsolo_log.py` reads the state-of-health log (`DigiSolo.LOG`) written by
@@ -31,55 +109,6 @@ SmartSolo nodes (e.g. IGU-16HR 3C 5Hz) and turns it into a **pandas DataFrame**:
   are also `datetime64[..., UTC]` columns
 - several files/nodes can be read at once and are tagged by node `serial`
 - a separate table holds the device metadata from each boot (`[DeviceInfo]`)
-
-### Repository layout
-
-```
-lib/smartsolo_log.py                  log parser
-lib/smartsolo_locate.py               deployments, radius/polygon/time selection
-lib/smartsolo_waveforms.py            waveform index, extraction, StationXML
-lib/smartsolo_node.py                 node folder files, pulse test, geophone QC, response
-lib/smartsolo_orientation.py          eCompass / tilt tools
-lib/smartsolo_dld.py                  raw DLD reader
-lib/smartsolo_config.py               settings (YAML/JSON) for everything
-lib/smartsolo_batch.py                batch conversion -> SDS archive + harvest database
-examples/batch_settings.yaml          example settings file
-docs/DLD_FORMAT.md                    reverse-engineered DLD format
-notebooks/smartsolo_log_demo.ipynb    log parsing and plotting
-notebooks/select_and_extract_demo.ipynb  selection + waveform extraction
-notebooks/node_qc_demo.ipynb          pulse test, sensor QC, polarity, orientation, response
-notebooks/dld_demo.ipynb              raw DLD files -> MiniSEED / SEG-Y / StationXML, DLD timing
-notebooks/break_test.ipynb            the Land Cruiser break test: map, events, speeds, spectra, fun
-notebooks/batch_convert.ipynb         batch conversion of harvests to SDS / window files
-scripts/make_synthetic_waveforms.py   synthetic MiniSEED/SEG-Y test data
-tests/test_toolbox.py                 pytest tests
-tests/test_batch.py                   timing, responses, settings, SDS batch tests
-data/break_test/                      6 nodes, raw DLD + logs + pulse tests (Git LFS):
-                                      a Land Cruiser HJ60 braking (see data/break_test/README.md)
-data/nodes/<serial>/                  example logs, no waveform data (see data/nodes/README.md):
-  453021267, 453022522                  DML, Antarctica, 2 weeks (453022522: + script, device.ini, PULSE_*.WAV)
-tests/fixtures/                       a V1.1.4 log with GNSS records (parser test)
-docs/FINDINGS.md                      everything learned from the files, with numbers
-data/timing_example/                  two 3-min DLD excerpts showing the 2-s label jump (Git LFS)
-paper/                                make_figures.py and figures/ (figures for the software report)
-```
-
-### Install
-
-```bash
-git clone https://github.com/TobbeTripitaka/node_toolbox.git
-cd node_toolbox
-git lfs install && git lfs pull      # raw DLD sample data (~45 MB, Git LFS)
-pip install -r requirements.txt
-```
-
-No packaging needed (might do later),  just put `lib/` on the Python path:
-
-```python
-import sys
-sys.path.insert(0, "path/to/node_toolbox/lib")
-import smartsolo_log as sl
-```
 
 ### Quick start
 
@@ -162,7 +191,7 @@ pairs such as `2907,39` are split into `<name>_1` and `<name>_2`, IDs/codes
 (serial number, boot reason, firmware) stay as text. Fields not listed above are
 still parsed; any new `key = value` appears as a column automatically.
 
-`df.attrs["header_counts"]` holds teh counters from the first line of the file
+`df.attrs["header_counts"]` holds the counters from the first line of the file
 (`<DeviceInfo,GPS,Temperature,Memory,Battery,Error,Notify>`) and
 `df.attrs["parsed_counts"]` what was actually parsed, as a sanity check. (The
 Notify counter in the header does not match the number of Notify blocks in the
@@ -175,7 +204,7 @@ nodes.to_csv("soh.csv")
 nodes.to_parquet("soh.parquet")   # needs pyarrow
 ```
 
-See `notebooks/smartsolo_log_demo.ipynb` for a full walk-through with plots.
+See [`notebooks/tutorials/smartsolo_log_demo.ipynb`](notebooks/tutorials/smartsolo_log_demo.ipynb) for a full walk-through with plots.
 
 ## Selecting stations and cutting waveforms
 
@@ -327,7 +356,7 @@ pytest -q tests
 
 `data/break_test/` holds six nodes recording **a Toyota Land Cruiser HJ60
 braking, with a laughing baby in the back seat** (road beside the sports
-oval in Sandy Bay, Hobart, 31 March 2023, 500 sps). `notebooks/break_test.ipynb`
+oval in Sandy Bay, Hobart, 31 March 2023, 500 sps). [`notebooks/case_studies/break_test.ipynb`](notebooks/case_studies/break_test.ipynb)
 maps the nodes on aerial imagery, detects the vehicle events, estimates speeds from
 the travel time between the node pairs, picks the ten most likely brake
 stops, shows spectrograms with Doppler-gliding engine tones, stacks and
@@ -412,7 +441,7 @@ log reader maps them to the GPS names, and handles `UTC Time = ","`,
 `DigiSolo.LOG`) in one go, configured by one settings file
 ([examples/batch_settings.yaml](examples/batch_settings.yaml); all settings with
 explanations: `python lib/smartsolo_batch.py all.yaml x --template`). Demo:
-[notebooks/batch_convert.ipynb](notebooks/batch_convert.ipynb).
+[notebooks/tutorials/batch_convert.ipynb](notebooks/tutorials/batch_convert.ipynb).
 
 ```bash
 python lib/smartsolo_batch.py my_settings.yaml /media/harvest_01 /media/harvest_02 --dry-run
@@ -451,7 +480,7 @@ On two break-test nodes (453004362, 453010029) both programs wrote identical SDS
 
 ## Node folder files, pulse test and sensor QC
 
-`lib/smartsolo_node.py` reads teh small files every node writes next to
+`lib/smartsolo_node.py` reads the small files every node writes next to
 `DigiSolo.LOG`:
 
 | file | content | function |
@@ -591,7 +620,7 @@ so.rotate_to_ne(st, north_azimuth=127.2)  # or rotate the data to geographic N/E
   default flip would double it - use `invert_polarity=False`).
 - Meaning of `eCompass North` (magnetic azimuth of the N arrow?) and whether
   the compass was calibrated.
-- SEG-Y exports have one component per trace with the start time in teh
+- SEG-Y exports have one component per trace with the start time in the
   trace headers; how SoloLite labels components in SEG-Y may need `component_func=lambda path, trace: ...`
   (in both `index_waveforms` and `extract_waveforms`).
 

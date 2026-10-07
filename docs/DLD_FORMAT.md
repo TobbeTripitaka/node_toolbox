@@ -95,7 +95,7 @@ Header bytes are identical in the X, Y and Z files of one recording.
   The text time (`time_source="label"`) is 1 s late until the receiver knows
   the leap seconds, then jumps back 2 s mid-file and is 1 s early – this
   creates false 2-s offsets between nodes (shown by cross-correlation in
-  `notebooks/dld_demo.ipynb`).
+  `notebooks/tutorials/dld_demo.ipynb`).
 - **Absolute offset**: an earlier version subtracted 1 s so that TOW agreed
   with the labels once the leap seconds are known; a comparison with co-located
   permanent stations (S1.AUANU, M8.AUANU) showed the data 1 s early with it,

@@ -7,7 +7,8 @@ obspy>=1.4
 geopandas>=0.14
 shapely>=2.0
 pyogrio
+pyyaml        # YAML settings files (JSON works without it)
 ppigrf        # optional: magnetic declination
-contextily    # optional: basemaps in break_test.ipynb
+contextily    # optional: basemaps in notebooks/case_studies/break_test.ipynb
 jupyter
 pytest

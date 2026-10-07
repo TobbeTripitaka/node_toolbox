@@ -24,7 +24,7 @@ What they show:
   in the logs too (the reader splits the log into one session per
   power-up).
 - **Other files:** 453022522 also has the acquisition script with its test
-  limits, `device.ini` and a geophone pulse test (`node_qc_demo.ipynb`).
+  limits, `device.ini` and a geophone pulse test (`notebooks/tutorials/node_qc_demo.ipynb`).
 
 Used by `smartsolo_log_demo.ipynb`, `select_and_extract_demo.ipynb`,
 `node_qc_demo.ipynb` and the tests. Details and numbers are in

@@ -30,5 +30,5 @@ git lfs install
 git lfs pull
 ```
 
-See `notebooks/break_test.ipynb` for the map and analysis and
-`notebooks/dld_demo.ipynb` for reading the files.
+See `notebooks/case_studies/break_test.ipynb` for the map and analysis and
+`notebooks/tutorials/dld_demo.ipynb` for reading the files.

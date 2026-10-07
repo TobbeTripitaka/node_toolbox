@@ -139,7 +139,7 @@ data keep that layout).
   0 ± 4 ms throughout. A 3-minute excerpt around the jump of 453009194 at
   00:58:37, with the same minutes from 453010047, is kept in
   `data/timing_example/` (2-s lag with labels before the jump, 0 after and
-  with TOW; `notebooks/dld_demo.ipynb`, test `test_dld_label_jump_excerpt`).
+  with TOW; `notebooks/tutorials/dld_demo.ipynb`, test `test_dld_label_jump_excerpt`).
 - The tag `counter` field resets to 0 at each GPS synchronisation and then
   counts 100 per second (time since the last sync in 10 ms units).
 - **Absolute offset.** An earlier version used UTC = week + TOW − 1 s −
