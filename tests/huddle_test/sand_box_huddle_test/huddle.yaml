@@ -1,0 +1,24 @@
+# Huddle test settings. Paths are relative to this folder unless absolute.
+# data/ is git-ignored: raw node files, backups, state and results never go to GitHub.
+# To keep data on an external drive instead, give an absolute path outside the repository.
+data_dir: data
+
+# Where nodes appear when connected to the reader/rack, besides Windows drive letters D:-Z:
+mount_globs: ["/Volumes/*", "/media/*/*", "/media/*", "/run/media/*/*", "/mnt/*"]
+
+# Timing reference (Pegasus + Compact): folder with its MiniSEED; leave path empty
+# to use the consensus of the 1000 sps / 0 dB / linear-phase nodes instead.
+reference:
+  path: ""
+  station: ""
+  channels: "HH?"
+  stationxml: ""        # its StationXML: needed to compare phases with the geophones
+
+analysis:
+  band_hz: [2.0, 15.0]
+  work_rate_sps: 200.0
+  max_lag_s: 25.0
+  event_window_s: [-1.0, 3.0]
+  min_snr: 8.0
+  min_separation_s: 2.0
+  correct_responses: true   # geophone poles/zeros off the nodes, full response off the reference

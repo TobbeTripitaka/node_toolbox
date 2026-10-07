@@ -1,0 +1,67 @@
+# How matrix settings are written into sct_par.xml.
+# Evidence: SoloLite scripts exported 7 Oct 2026 for node 453046173 (V1.1.4.2be),
+# templates/sololite_reference_V1.1.4.2be/ (32 files), and DigiSolo.LOG files of
+# nodes that booted with such scripts (the log echoes most settings).
+# confirmed: false = inferred; xmlgen lists every unconfirmed code it used in xml/manifest.csv.
+
+Sample_Rate:                 # sample interval in 10 us units
+  confirmed_rates: [4000, 2000, 1000, 500, 250, 50]    # 25, 50, 100, 200, 400, 2000 seen
+  rule: "100000 / sample_rate_sps"                      # 125 / 100 sps (800 / 1000) inferred
+
+Channel_Gain:                # Channel_N_Gain in dB, may differ per channel
+  confirmed_values: [0, 6, 12, 18, 24, 30, 36]
+
+Anti_Alias_Filter:           # log: code 2 = "Anti-alias Filter Type = Linear"
+  linear: {code: 2, confirmed: true}
+  minimum: {code: 1, confirmed: true}
+
+# One XML field per matrix factor: level -> code
+factors:
+  gnss_mode:                 # GPS_Mode; log "GNSS Power Mode = CycleOff" for 1 (GNSS off between syncs)
+    field: GPS_Mode
+    levels: {cycle: {code: 1, confirmed: true}, always: {code: 2, confirmed: true}}
+  gnss_system:               # GNSS_Working_Mode, bit mask 1 GPS + 2 GLONASS + 4 BeiDou
+    field: GNSS_Working_Mode
+    levels: {gps: {code: 1, confirmed: true}, gps+glonass: {code: 3, confirmed: true},
+             gps+beidou: {code: 5, confirmed: true}}
+  low_cut:                   # Low_Cut_Filter; log "Low Cutter Filter = <code>"
+    field: Low_Cut_Filter
+    levels: {"off": {code: 0, confirmed: true}, "0.05": {code: 1, confirmed: true},
+             "0.2": {code: 3, confirmed: true}, "0.8": {code: 5, confirmed: true},
+             "1.25": {code: 6, confirmed: true}, "7.5": {code: 9, confirmed: true},
+             "dc": {code: 11, confirmed: true},
+             # !!! FREQUENCY NOT KNOWN: codes 2 and 10 appear in SoloLite scripts (the log-test
+             # script and the channel-type scripts) but their low-cut frequency is not named.
+             # Tested in batch 7 so the measured phase/amplitude shows what they do.
+             "unknown_2": {code: 2, confirmed: false}, "unknown_10": {code: 10, confirmed: false}}
+  adc_mode:                  # HR_LP_Mode; log "ADC LP Mode"
+    field: HR_LP_Mode
+    levels: {normal: {code: 0, confirmed: true}, low_power: {code: 1, confirmed: true}}
+  storage:                   # MiniSeed_Output_Mode; MiniSEED adds MiniSeed_Record_Length512 = 1
+    field: MiniSeed_Output_Mode
+    levels: {dld: {code: 0, confirmed: true}, miniseed: {code: 1, confirmed: true}}
+    extra: {miniseed: {MiniSeed_Record_Length512: 1}}
+  test_mode:                 # Geophone_Test_mode
+    field: Geophone_Test_mode
+    # 0 "Full detection only once", 2 "No detection". Code 1 ("full detection")
+    # is not available for the IGU-16HR 3C and is deliberately not offered.
+    levels: {once: {code: 0, confirmed: true}, none: {code: 2, confirmed: true}}
+
+# Template per firmware (longest matching prefix); default templates/sct_par_template.xml
+# (DML script, V1.0.8.1be). Templates of V1.0.5.x and V1.0.7.x firmware are not verified.
+templates_by_firmware:
+  V1.1.4: templates/sololite_reference_V1.1.4.2be/Linear_Phase.xml
+verified_template_firmware: ["V1.1.4", "V1.0.8"]
+
+set_fields:
+  prospect: HUDDLE
+  project_name: HUDDLE
+  Flash_FIFO_MODE: 1         # FIFO on (0 = "FIFO OFF")
+
+# Other codes seen (not used by the matrix):
+#   Channel_N_type 97 Unused, 98 Seismic, 99 UpHole, 100 TimeBreak, 101 ConfirmTB, 102 ClockTB,
+#                  103 Sweep, 104 VibMass, 105 VibBaseplate, 106 GroundForce, 107 VibReference, 108 Other
+#   ChNumber 1-3; device_type "IGU-16HR 3C 5Hz" | "IGU-16 1C 5Hz" | "IGU-16 1C 10Hz"
+#   LED_Trouble_Shooting 30-230 (min); Battery_Threshold 600-2400, Full_Battery_Indicator_Voltage 800-850,
+#   Battery_Critical 600-650 (0.01 V); Memory_Threshold 3000-100000; GPS_Relock_Timeout_Warning 3600-10800 s
+#   passive mode: begin_tm_passive / end_tm_passive "HH,MM,SS", Low_Cut_Flt_Passive; eCompass_Calibration_Mode 0/1

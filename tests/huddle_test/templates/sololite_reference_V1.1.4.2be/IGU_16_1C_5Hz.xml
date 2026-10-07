@@ -1,0 +1,35 @@
+
+<script_Information>
+    <prospect>AWD test</prospect>
+    <script_file_name>IGU 16 iC5Hz</script_file_name>
+    <project_name>AWD test</project_name>
+    <device_type>IGU-16 1C 5Hz</device_type>
+    <ChNumber>1</ChNumber>
+    <DeviceRunMode>0</DeviceRunMode>
+    <begin_Day>2026/10/07</begin_Day>
+    <begin_time>00,00,00</begin_time>
+    <end_time>00,00,00</end_time>
+    <GPS_Mode>1</GPS_Mode>
+    <Sample_Rate>100</Sample_Rate>
+    <Flash_FIFO_MODE>0</Flash_FIFO_MODE>
+    <Auxiliary_Address>1</Auxiliary_Address>
+    <LED_Trouble_Shooting>30</LED_Trouble_Shooting>
+    <Channel_1_type>98</Channel_1_type>
+    <Channel_1_Gain>0</Channel_1_Gain>
+    <Anti_Alias_Filter>1</Anti_Alias_Filter>
+    <Low_Cut_Filter>0</Low_Cut_Filter>
+    <Battery_Threshold>650</Battery_Threshold>
+    <Memory_Threshold>20000</Memory_Threshold>
+    <Geophone_Test_mode>0</Geophone_Test_mode>
+    <resistance_upper_limit>1905</resistance_upper_limit>
+    <resistance_lower_limit>1640</resistance_lower_limit>
+    <damping_upper_limit>752</damping_upper_limit>
+    <damping_lower_limit>647</damping_lower_limit>
+    <resonate_frequency_upper_limit>537</resonate_frequency_upper_limit>
+    <resonate_frequency_lower_limit>463</resonate_frequency_lower_limit>
+    <sensitivity_upper_limit>82</sensitivity_upper_limit>
+    <sensitivity_lower_limit>71</sensitivity_lower_limit>
+    <Full_Battery_Indicator_Voltage>835</Full_Battery_Indicator_Voltage>
+    <GPS_Relock_Timeout_Warning>7200</GPS_Relock_Timeout_Warning>
+    <Remove_Power_ShortBreak>1</Remove_Power_ShortBreak>
+</script_Information>

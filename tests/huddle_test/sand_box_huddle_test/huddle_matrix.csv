@@ -1,0 +1,169 @@
+row_id,batch,unit,firmware,sample_rate_sps,gain_db,filter_phase,orientation_deg,tilt_deg,role,design,gnss_mode,gnss_system,low_cut,adc_mode,storage,test_mode,gain_ch1,gain_ch2,gain_ch3
+B1-F1A,1,F1A,V1.0.5.6kp,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F1B,1,F1B,V1.0.5.6kp,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F1C,1,F1C,V1.0.5.6kp,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F2A,1,F2A,V1.0.5.8ke,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F2B,1,F2B,V1.0.5.8ke,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F2C,1,F2C,V1.0.5.8ke,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F3A,1,F3A,V1.0.5.9ke,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F3B,1,F3B,V1.0.5.9ke,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F3C,1,F3C,V1.0.5.9ke,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F4A,1,F4A,V1.0.7.5ke,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F4B,1,F4B,V1.0.7.5ke,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F4C,1,F4C,V1.0.7.5ke,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F5A,1,F5A,V1.0.7.8bke,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F5B,1,F5B,V1.0.7.8bke,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F5C,1,F5C,V1.0.7.8bke,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F6A,1,F6A,V1.0.7.9be,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F6B,1,F6B,V1.0.7.9be,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F6C,1,F6C,V1.0.7.9be,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F7A,1,F7A,V1.0.8.1be,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F7B,1,F7B,V1.0.8.1be,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F7C,1,F7C,V1.0.8.1be,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F8A,1,F8A,V1.1.4.2be,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F8B,1,F8B,V1.1.4.2be,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B1-F8C,1,F8C,V1.1.4.2be,1000,0.0,linear,0,0,baseline: same setting on every firmware,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F1A,2,F1A,V1.0.5.6kp,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F1B,2,F1B,V1.0.5.6kp,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F1C,2,F1C,V1.0.5.6kp,1000,0.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F2A,2,F2A,V1.0.5.8ke,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F2B,2,F2B,V1.0.5.8ke,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F2C,2,F2C,V1.0.5.8ke,1000,6.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,6,6,6
+B2-F3A,2,F3A,V1.0.5.9ke,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F3B,2,F3B,V1.0.5.9ke,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F3C,2,F3C,V1.0.5.9ke,1000,12.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,12,12,12
+B2-F4A,2,F4A,V1.0.7.5ke,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F4B,2,F4B,V1.0.7.5ke,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F4C,2,F4C,V1.0.7.5ke,1000,18.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,18,18,18
+B2-F5A,2,F5A,V1.0.7.8bke,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F5B,2,F5B,V1.0.7.8bke,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F5C,2,F5C,V1.0.7.8bke,1000,24.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,24,24,24
+B2-F6A,2,F6A,V1.0.7.9be,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F6B,2,F6B,V1.0.7.9be,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F6C,2,F6C,V1.0.7.9be,1000,30.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,30,30,30
+B2-F7A,2,F7A,V1.0.8.1be,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F7B,2,F7B,V1.0.8.1be,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F7C,2,F7C,V1.0.8.1be,1000,36.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,36,36,36
+B2-F8A,2,F8A,V1.1.4.2be,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F8B,2,F8B,V1.1.4.2be,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B2-F8C,2,F8C,V1.1.4.2be,1000,0.0,minimum,0,0,filter phase (compare baseline),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F1A,3,F1A,V1.0.5.6kp,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F1B,3,F1B,V1.0.5.6kp,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F1C,3,F1C,V1.0.5.6kp,1000,24.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,24,24,24
+B3-F2A,3,F2A,V1.0.5.8ke,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F2B,3,F2B,V1.0.5.8ke,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F2C,3,F2C,V1.0.5.8ke,1000,30.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,30,30,30
+B3-F3A,3,F3A,V1.0.5.9ke,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F3B,3,F3B,V1.0.5.9ke,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F3C,3,F3C,V1.0.5.9ke,1000,36.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,36,36,36
+B3-F4A,3,F4A,V1.0.7.5ke,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F4B,3,F4B,V1.0.7.5ke,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F4C,3,F4C,V1.0.7.5ke,1000,0.0,minimum,0,0,filter phase (compare baseline),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F5A,3,F5A,V1.0.7.8bke,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F5B,3,F5B,V1.0.7.8bke,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F5C,3,F5C,V1.0.7.8bke,1000,0.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F6A,3,F6A,V1.0.7.9be,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F6B,3,F6B,V1.0.7.9be,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F6C,3,F6C,V1.0.7.9be,1000,6.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,6,6,6
+B3-F7A,3,F7A,V1.0.8.1be,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F7B,3,F7B,V1.0.8.1be,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F7C,3,F7C,V1.0.8.1be,1000,12.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,12,12,12
+B3-F8A,3,F8A,V1.1.4.2be,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F8B,3,F8B,V1.1.4.2be,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B3-F8C,3,F8C,V1.1.4.2be,1000,18.0,linear,0,0,gain sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,18,18,18
+B4-F1A,4,F1A,V1.0.5.6kp,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F1B,4,F1B,V1.0.5.6kp,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F1C,4,F1C,V1.0.5.6kp,1000,0.0,linear,90,0,orientation/polarity control,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F2A,4,F2A,V1.0.5.8ke,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F2B,4,F2B,V1.0.5.8ke,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F2C,4,F2C,V1.0.5.8ke,1000,0.0,linear,90,0,orientation/polarity control,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F3A,4,F3A,V1.0.5.9ke,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F3B,4,F3B,V1.0.5.9ke,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F3C,4,F3C,V1.0.5.9ke,1000,0.0,linear,90,0,orientation/polarity control,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F4A,4,F4A,V1.0.7.5ke,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F4B,4,F4B,V1.0.7.5ke,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F4C,4,F4C,V1.0.7.5ke,1000,0.0,linear,90,0,orientation/polarity control,latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F5A,4,F5A,V1.0.7.8bke,50,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F5B,4,F5B,V1.0.7.8bke,500,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F5C,4,F5C,V1.0.7.8bke,1000,0.0,minimum,0,0,filter phase (compare baseline),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F6A,4,F6A,V1.0.7.9be,4000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F6B,4,F6B,V1.0.7.9be,250,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F6C,4,F6C,V1.0.7.9be,1000,0.0,minimum,0,0,filter phase (compare baseline),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F7A,4,F7A,V1.0.8.1be,2000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F7B,4,F7B,V1.0.8.1be,125,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F7C,4,F7C,V1.0.8.1be,1000,0.0,minimum,0,0,filter phase (compare baseline),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F8A,4,F8A,V1.1.4.2be,1000,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F8B,4,F8B,V1.1.4.2be,100,0.0,linear,0,0,rate sweep (Latin square),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B4-F8C,4,F8C,V1.1.4.2be,1000,0.0,minimum,0,0,filter phase (compare baseline),latin_square,cycle,gps,off,normal,dld,once,0,0,0
+B5-F1A,5,F1A,V1.0.5.6kp,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F1B,5,F1B,V1.0.5.6kp,1000,0.0,linear,0,0,low-cut filter 0.05 Hz,targeted,cycle,gps,0.05,normal,dld,once,0,0,0
+B5-F1C,5,F1C,V1.0.5.6kp,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F2A,5,F2A,V1.0.5.8ke,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F2B,5,F2B,V1.0.5.8ke,1000,0.0,linear,0,0,low-cut filter 0.2 Hz,targeted,cycle,gps,0.2,normal,dld,once,0,0,0
+B5-F2C,5,F2C,V1.0.5.8ke,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F3A,5,F3A,V1.0.5.9ke,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F3B,5,F3B,V1.0.5.9ke,1000,0.0,linear,0,0,low-cut filter 0.8 Hz,targeted,cycle,gps,0.8,normal,dld,once,0,0,0
+B5-F3C,5,F3C,V1.0.5.9ke,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F4A,5,F4A,V1.0.7.5ke,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F4B,5,F4B,V1.0.7.5ke,1000,0.0,linear,0,0,low-cut filter 1.25 Hz,targeted,cycle,gps,1.25,normal,dld,once,0,0,0
+B5-F4C,5,F4C,V1.0.7.5ke,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F5A,5,F5A,V1.0.7.8bke,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F5B,5,F5B,V1.0.7.8bke,1000,0.0,linear,0,0,low-cut filter 7.5 Hz,targeted,cycle,gps,7.5,normal,dld,once,0,0,0
+B5-F5C,5,F5C,V1.0.7.8bke,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F6A,5,F6A,V1.0.7.9be,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F6B,5,F6B,V1.0.7.9be,1000,0.0,linear,0,0,low-cut filter: DC removed,targeted,cycle,gps,dc,normal,dld,once,0,0,0
+B5-F6C,5,F6C,V1.0.7.9be,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F7A,5,F7A,V1.0.8.1be,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F7B,5,F7B,V1.0.8.1be,1000,0.0,linear,0,0,low-cut filter 0.8 Hz,targeted,cycle,gps,0.8,normal,dld,once,0,0,0
+B5-F7C,5,F7C,V1.0.8.1be,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B5-F8A,5,F8A,V1.1.4.2be,1000,0.0,linear,0,0,"GNSS always on (compare C, same firmware)",targeted,always,gps,off,normal,dld,once,0,0,0
+B5-F8B,5,F8B,V1.1.4.2be,1000,0.0,linear,0,0,low-cut filter 7.5 Hz,targeted,cycle,gps,7.5,normal,dld,once,0,0,0
+B5-F8C,5,F8C,V1.1.4.2be,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B6-F1A,6,F1A,V1.0.5.6kp,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F1B,6,F1B,V1.0.5.6kp,1000,0.0,linear,0,0,node MiniSEED output (compare DLD timing),targeted,cycle,gps,off,normal,miniseed,once,0,0,0
+B6-F1C,6,F1C,V1.0.5.6kp,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B6-F2A,6,F2A,V1.0.5.8ke,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F2B,6,F2B,V1.0.5.8ke,1000,0.0,linear,0,0,low-power ADC mode,targeted,cycle,gps,off,low_power,dld,once,0,0,0
+B6-F2C,6,F2C,V1.0.5.8ke,1000,0.0,linear,0,0,GNSS GPS+GLONASS,targeted,cycle,gps+glonass,off,normal,dld,once,0,0,0
+B6-F3A,6,F3A,V1.0.5.9ke,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F3B,6,F3B,V1.0.5.9ke,1000,0.0,linear,0,0,node MiniSEED output (compare DLD timing),targeted,cycle,gps,off,normal,miniseed,once,0,0,0
+B6-F3C,6,F3C,V1.0.5.9ke,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B6-F4A,6,F4A,V1.0.7.5ke,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F4B,6,F4B,V1.0.7.5ke,1000,0.0,linear,0,0,low-power ADC mode,targeted,cycle,gps,off,low_power,dld,once,0,0,0
+B6-F4C,6,F4C,V1.0.7.5ke,1000,0.0,linear,0,0,GNSS GPS+BEIDOU,targeted,cycle,gps+beidou,off,normal,dld,once,0,0,0
+B6-F5A,6,F5A,V1.0.7.8bke,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F5B,6,F5B,V1.0.7.8bke,1000,0.0,linear,0,0,node MiniSEED output (compare DLD timing),targeted,cycle,gps,off,normal,miniseed,once,0,0,0
+B6-F5C,6,F5C,V1.0.7.8bke,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B6-F6A,6,F6A,V1.0.7.9be,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F6B,6,F6B,V1.0.7.9be,1000,0.0,linear,0,0,low-power ADC mode,targeted,cycle,gps,off,low_power,dld,once,0,0,0
+B6-F6C,6,F6C,V1.0.7.9be,1000,0.0,linear,0,0,GNSS GPS+GLONASS,targeted,cycle,gps+glonass,off,normal,dld,once,0,0,0
+B6-F7A,6,F7A,V1.0.8.1be,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F7B,6,F7B,V1.0.8.1be,1000,0.0,linear,0,0,node MiniSEED output (compare DLD timing),targeted,cycle,gps,off,normal,miniseed,once,0,0,0
+B6-F7C,6,F7C,V1.0.8.1be,1000,0.0,linear,0,0,reference setting,targeted,cycle,gps,off,normal,dld,once,0,0,0
+B6-F8A,6,F8A,V1.1.4.2be,1000,,linear,0,0,"channel mapping: Ch1 0 dB, Ch2 12 dB, Ch3 24 dB",targeted,cycle,gps,off,normal,dld,once,0,12,24
+B6-F8B,6,F8B,V1.1.4.2be,1000,0.0,linear,0,0,low-power ADC mode,targeted,cycle,gps,off,low_power,dld,once,0,0,0
+B6-F8C,6,F8C,V1.1.4.2be,1000,0.0,linear,0,0,GNSS GPS+BEIDOU,targeted,cycle,gps+beidou,off,normal,dld,once,0,0,0
+B7-F1A,7,F1A,V1.0.5.6kp,50,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F1B,7,F1B,V1.0.5.6kp,1000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F1C,7,F1C,V1.0.5.6kp,1000,0.0,linear,0,0,reference setting,optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F2A,7,F2A,V1.0.5.8ke,100,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F2B,7,F2B,V1.0.5.8ke,1000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F2C,7,F2C,V1.0.5.8ke,1000,0.0,linear,0,0,low-cut code 2 (FREQUENCY UNKNOWN),optimised+unknowns,cycle,gps,unknown_2,normal,dld,once,0,0,0
+B7-F3A,7,F3A,V1.0.5.9ke,125,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F3B,7,F3B,V1.0.5.9ke,1000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F3C,7,F3C,V1.0.5.9ke,1000,0.0,linear,0,0,low-cut code 10 (FREQUENCY UNKNOWN),optimised+unknowns,cycle,gps,unknown_10,normal,dld,once,0,0,0
+B7-F4A,7,F4A,V1.0.7.5ke,250,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F4B,7,F4B,V1.0.7.5ke,4000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F4C,7,F4C,V1.0.7.5ke,1000,0.0,linear,0,0,no geophone test at boot,optimised+unknowns,cycle,gps,off,normal,dld,none,0,0,0
+B7-F5A,7,F5A,V1.0.7.8bke,500,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F5B,7,F5B,V1.0.7.8bke,50,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F5C,7,F5C,V1.0.7.8bke,1000,0.0,linear,0,0,reference setting,optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F6A,7,F6A,V1.0.7.9be,2000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F6B,7,F6B,V1.0.7.9be,100,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F6C,7,F6C,V1.0.7.9be,1000,0.0,linear,0,0,low-cut code 2 (FREQUENCY UNKNOWN),optimised+unknowns,cycle,gps,unknown_2,normal,dld,once,0,0,0
+B7-F7A,7,F7A,V1.0.8.1be,4000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F7B,7,F7B,V1.0.8.1be,250,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F7C,7,F7C,V1.0.8.1be,1000,0.0,linear,0,0,low-cut code 10 (FREQUENCY UNKNOWN),optimised+unknowns,cycle,gps,unknown_10,normal,dld,once,0,0,0
+B7-F8A,7,F8A,V1.1.4.2be,125,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F8B,7,F8B,V1.1.4.2be,2000,0.0,minimum,0,0,"minimum phase (compare linear, same rate and firmware)",optimised+unknowns,cycle,gps,off,normal,dld,once,0,0,0
+B7-F8C,7,F8C,V1.1.4.2be,1000,0.0,linear,0,0,no geophone test at boot,optimised+unknowns,cycle,gps,off,normal,dld,none,0,0,0

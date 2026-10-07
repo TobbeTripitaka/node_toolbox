@@ -9,3 +9,6 @@ soh_all_nodes.csv
 # synthetic waveforms (regenerate with scripts/make_synthetic_waveforms.py) and outputs
 data/seismic_traces/
 output/
+
+# Huddle test data (raw node files, backups, results) - too large for GitHub
+tests/huddle_test/sand_box_huddle_test/data/
