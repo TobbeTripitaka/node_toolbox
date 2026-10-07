@@ -23,7 +23,7 @@ The settings actually used are stored with every batch run (harvest
 database and ``settings_used.yaml`` in the output root), so a dataset can
 always be traced back to how it was made.
 
-Authors: Tobias Stål (UTAS), Robert Pickle (ANU)
+Authors: Tobias Stål (UTAS) 2026
 """
 
 from __future__ import annotations

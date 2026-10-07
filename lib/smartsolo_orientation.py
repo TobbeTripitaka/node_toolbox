@@ -37,7 +37,7 @@ plot_orientation(df, serial)        heading and tilt against time
 set_channel_azimuths(inv, table)    write chosen azimuths into a StationXML Inventory
 rotate_to_ne(st, north_azimuth)     rotate horizontal data to geographic N/E
 
-Tobias Stål 2023-2026
+Tobias Stål 2024-2026
 """
 
 from __future__ import annotations

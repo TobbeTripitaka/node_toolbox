@@ -66,7 +66,7 @@ scan_dld(path)               index rows without reading samples (for index_wavef
 read_dld_node(files)         X, Y, Z of one recording into one Stream
 compare_with_export(dld_st, exported_st)   timing/amplitude check vs SoloLite export
 
-Tobias Stål (UTAS), Robert Pickle (ANU) 2023-2026
+Tobias Stål (UTAS) 2023-2026
 """
 
 from __future__ import annotations
