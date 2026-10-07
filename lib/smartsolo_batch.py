@@ -39,7 +39,7 @@ Behaviour
 Design after the harvest script (SDS writing, harvest database,
 parallel workers), re-implemented on the node_toolbox readers.
 
-Authors: Tobias Stål (UTAS), Robert Pickle (ANU)
+Authors: Tobias Stål (UTAS)
 """
 
 from __future__ import annotations

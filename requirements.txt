@@ -8,7 +8,7 @@ geopandas>=0.14
 shapely>=2.0
 pyogrio
 pyyaml        # YAML settings files (JSON works without it)
-ppigrf        # optional: magnetic declination
+# ppigrf      # optional, not installed by default: magnetic declination (pip install ppigrf)
 contextily    # optional: basemaps in notebooks/case_studies/break_test.ipynb
 jupyter
 pytest
