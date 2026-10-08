@@ -3,6 +3,8 @@ Tools to work with SmartSolo node type geophones. Especially in Antarctic settin
 
 Authors: Tobias Stål (UTAS)
 
+<img src="https://github.com/TobbeTripitaka/telemetry_setup/blob/main/img/GRIT%20_Final.png" width="120" alt="GRIT project logo">
+
 ---
 
 node_toolbox reads what SmartSolo nodes write: the state-of-health log, the raw
