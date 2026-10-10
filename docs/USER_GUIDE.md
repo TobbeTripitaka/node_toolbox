@@ -1,6 +1,6 @@
 # User guide
 
-How to use each part of node_toolbox. New to SmartSolo data? Start with
+How to use each part of node_toolbox. New to SmartSolo data handling? Start with
 [SmartSolo basics](SMARTSOLO_BASICS.md). Code examples assume `lib/` is on the
 Python path (see the [README](../README.md#install)).
 
@@ -491,7 +491,7 @@ and flags `heading_unstable`, `tilt_over_horizontal_spec` (>3°),
 `tilt_over_vertical_spec` (>10°). Circular statistics are used throughout.
 
 Sample deployments: headings stable to ~0.9°, but 453021267 rotates
-+0.17°/day (2.3° in two weeks) with constant tilt – ice motion or compass
++0.17°/day (2.3° in two weeks) with constant tilt; ice motion or compass
 drift. Boot readings are taken before planting (453021267: 24° tilt, 36° off),
 so use `heading_settled`. Declination −29.5°, horizontal field 19 000 nT.
 
