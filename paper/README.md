@@ -1,1 +1,3 @@
-A software report is being prepared. 
+A Software Report is being prepared for SEISMICA. 
+
+
