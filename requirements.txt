@@ -10,5 +10,6 @@ pyogrio
 pyyaml        # YAML settings files (JSON works without it)
 # ppigrf      # optional, not installed by default: magnetic declination (pip install ppigrf)
 contextily    # optional: basemaps in notebooks/case_studies/break_test.ipynb
+cmcrameri     # optional: Crameri colour maps for the paper figures (paper/style.py)
 jupyter
 pytest
