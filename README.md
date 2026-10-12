@@ -84,11 +84,12 @@ batch and break-test notebooks read the raw DLD files).
 | [4. Batch conversion](notebooks/tutorials/batch_convert.ipynb) | The settings file (YAML/JSON) and a template of all settings; AusPass vs DTCC response constants and gain handling; a dry run; converting six nodes in parallel to an SDS archive; the harvest database (runs, source files, day files); reruns that skip converted files and redo files converted with other timing settings without duplicating samples; reading the archive with an ObsPy SDS client and removing the response; GPS sync diagnostics; window files (SEG-Y) instead of SDS; the command line | break test |
 | [5. Node QC and orientation](notebooks/tutorials/node_qc_demo.ipynb) | What a node folder contains (`device.ini`, acquisition scripts, `PULSE_*.WAV`); test limits from the script; the pulse test read at its true 1000 sps, damped-oscillator fits of natural frequency and damping, and the noise floor in µV; polarity and channel naming (AusPass/ANSIR); boot-by-boot geophone QC, the effect of temperature on coil resistance, and noisy tests; eCompass and tilt with circular statistics, slow rotation and IGRF declination; azimuths in StationXML; instrument response options | Antarctic nodes (`data/nodes/`) |
 
-### Case study
+### Case studies
 
 | Notebook | What it demonstrates | Data |
 |---|---|---|
 | [Break test](notebooks/case_studies/break_test.ipynb) | A complete analysis of six nodes read straight from their DLD files: positions and pick-up times from the GPS in the time tags; node health from logs and pulse tests; event detection on node pairs and apparent vehicle speeds; the ten strongest stops; record section, spectrogram and stacked spectrum; particle motion; engine speed from the firing tone; a search for a laughing baby; the signal as audio | break test (`data/break_test/`) |
+| [Cold battery check](notebooks/case_studies/cold_battery_check.ipynb) | Every `DigiSolo.LOG` in a folder: does temperature change how fast the battery voltage drops? Overall discharge rates; the 6-h voltage gradient against temperature, controlled for the state of charge, with bootstrap uncertainties; whole-day windows; the delayed daily voltage response; two nodes side by side; days left to the low-battery threshold | all logs under `data/` |
 
 ## Repository layout
 

@@ -18,3 +18,4 @@ In the order of a typical workflow:
 ## Case studies
 
 - [Break test](case_studies/break_test.ipynb) – seismic signals of a braking Toyota Land Cruiser HJ60 recorded by six nodes: positions and orientation from the DLD files, event detection, vehicle speeds, spectra, particle motion, engine speed, and a search for a laughing baby.
+- [Cold battery check](case_studies/cold_battery_check.ipynb) – every log in a folder: battery voltage gradient against temperature, controlled for the state of charge; the daily voltage response and its delay; two nodes side by side; battery life to the low-battery threshold.
