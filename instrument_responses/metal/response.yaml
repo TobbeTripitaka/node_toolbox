@@ -1,0 +1,23 @@
+# Instrument response model for node_toolbox (smartsolo_response.get_response)
+title: 'Metal: a U-shaped rock EQ, and the preamp goes to 11'
+use: NOT FOR SCIENCE. A test that the machinery handles an arbitrary response; also a reminder to check
+  which response a data set was corrected with.
+source:
+- name: This Is Spinal Tap (1984)
+  url: https://en.wikipedia.org/wiki/Up_to_eleven
+devices:
+  IGU-16HR3C:
+    eq_zeros_hz:
+    - 80
+    - 100
+    eq_poles_hz:
+    - 20
+    - 400
+    eq: x4 (+12 dB) below 20 Hz and above 400 Hz relative to the scooped mids
+    preamp_gain_db: 11
+notes:
+- 11 dB is not a SmartSolo gain setting (0-36 dB in 6 dB steps). Other gains are made by rescaling.
+files:
+- file: IGU-16HR3C_11dB.xml
+  device: IGU-16HR3C
+  gain_db: 11

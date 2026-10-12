@@ -423,27 +423,39 @@ What the files can tell us (sample node 453022522):
 
 ### Instrument response
 
+Suggested responses are kept as FDSN StationXML files in
+[`instrument_responses/`](../instrument_responses/), one folder per model, each with
+a readable `response.yaml`. They are read by `lib/smartsolo_response.py`:
+
 ```python
+import smartsolo_response as sr
+sr.list_responses()                                              # the models
+resp = sr.get_response("auspass", "IGU-16HR 3C 5Hz", gain_db=24, sampling_rate=250)
+sr.inspect_instrument_response(["auspass", "nrl", "nominal"])    # summary table + Bode plot
 inv = wf.build_inventory(sel, mapping="data/station_mapping.csv", response="auspass")
 ```
 
 | `response=` | source |
 |---|---|
-| `"auspass"` (default) | AusPass/ANSIR published IGU-16HR 3C response: zeros 0, 0; poles −22.211059 ± 22.217768j (5.000 Hz, h 0.707); 257 019 225.55 counts/(m/s) flat gain for polarity-flipped, gain-removed counts. Written as three stages: sensor 76.6 V/(m/s) → preamp 10^(gain/20) → ADC 3 355 342.4 counts/V |
+| `"auspass"` (default) | AusPass/ANSIR published IGU-16HR 3C response: zeros 0, 0; poles −22.211059 ± 22.217768j (5.000 Hz, h 0.707); 257 019 225.55 counts/(m/s) flat gain for polarity-flipped, gain-removed counts. Written as three stages: sensor 76.6 V/(m/s) → preamp 10^(gain/20) → ADC 3 355 342.4 counts/V. Also embedded in the code, so it works without the folder |
 | `"dtcc"` | same stages with the DTCC data-sheet constants used in the harvest script: 76.6 V/(m/s) × 3 355 500 counts/V (0.005 % more sensitive than AusPass); for comparison with archives made by that script |
-| `"test"` | each deployment's own boot-time geophone test (if it passed and wasn't noisy), else nominal |
+| `"nrl"` | EarthScope/IRIS Nominal Response Library: DT-SOLO (76.6 V/(m/s)) + SmartSolo IGU-16HR3C datalogger with its four decimating FIR stages, one file per gain, sample rate (50–1000 sps) and filter phase (linear / minimum) |
 | `"nominal"` | DT-SOLO data sheet: 5 Hz, h 0.70, 80 V/(m/s) × 3355.4428 counts/mV × gain |
+| `"metal"` | a joke: a U-shaped "rock EQ" and a preamp at 11 dB – shows how a wrong response looks |
+| `"test"` | each deployment's own boot-time geophone test (if it passed and wasn't noisy), else nominal (computed, no file) |
+| any folder name | your own model in `instrument_responses/<name>/` |
 
-`geophone_response(f0, damping, sensitivity, gain_db)` builds the latter two,
-`staged_response(device_type, sampling_rate, gain_db, model)` the first two
-(BD3C-5 nodes get their own poles/zeros, 209.4 V/(m/s), instrument code `H`).
-The anti-alias FIR is not included. `gain_db` must match the data: the log
-gain for raw DLD counts (default, `gain_db="auto"`), 0 for exports with
-"Remove Gain" or `remove_gain=True` – otherwise amplitudes are ×15.85 off at
-24 dB. The AusPass constant is the default because it is the published,
-tested value; the three response constants in use (AusPass 257 019 226,
-DTCC manual 76.6 × 3 355 442.8 = 257 026 918, R. Pickle 257 031 300
-counts/(m/s)) differ by < 0.005 %.
+`gain_db` must match the data: the log gain for raw DLD counts (default,
+`gain_db="auto"`), 0 for exports with "Remove Gain" or `remove_gain=True` –
+otherwise amplitudes are ×15.85 off at 24 dB. The AusPass constant is the
+default because it is the published, tested value; the response constants in
+use (AusPass 257 019 226, DTCC manual 76.6 × 3 355 442.8 = 257 026 918,
+R. Pickle 257 031 300 counts/(m/s)) differ by < 0.005 %. The NRL treats the
+preamp gains as powers of two (×16 at 24 dB rather than ×15.85), a difference
+of up to 1.4 % at 36 dB. The notebook
+[instrument responses](../notebooks/tutorials/instrument_responses.ipynb)
+explains the geophone physics, the models, the anti-alias filters and the effect of
+temperature.
 
 ## Polarity and channel naming
 

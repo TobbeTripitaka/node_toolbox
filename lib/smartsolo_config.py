@@ -80,6 +80,8 @@ DEFAULT_CONFIG = {
         #                (+0.005 % vs AusPass)
         #   "test"     - the node's own boot-time geophone test values (falls back to nominal)
         #   "nominal"  - DT-SOLO data sheet: 5 Hz, h 0.70, 80 V/(m/s)
+        #   "nrl"      - EarthScope/IRIS Nominal Response Library, with the FIR stages for the rate
+        #   or any other folder in instrument_responses/ (see smartsolo_response)
         #   null       - no response
         "response": "auspass",
         # Orientation in StationXML: "north" (assume N arrow to north) or "compass"

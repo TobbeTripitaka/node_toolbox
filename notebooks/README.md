@@ -14,6 +14,7 @@ In the order of a typical workflow:
 3. [Raw DLD files](tutorials/dld_demo.ipynb) – the DLD header and time tags, why the GPS time of week is used instead of the text time (the 2-s jump), reading samples, export to MiniSEED, SEG-Y and StationXML.
 4. [Batch conversion](tutorials/batch_convert.ipynb) – a settings file, whole harvests to an SDS archive with a harvest database, reruns, timing diagnostics, window files, command line.
 5. [Node QC and orientation](tutorials/node_qc_demo.ipynb) – acquisition script limits, the pulse test, boot-by-boot geophone QC, polarity, eCompass and tilt, instrument response.
+6. [Instrument responses](tutorials/instrument_responses.ipynb) – the DT-SOLO geophone, the response models in `instrument_responses/` (AusPass, DTCC, NRL, nominal), preamp gain in dB or powers of two, linear- and minimum-phase anti-alias filters, temperature, and what the choice does to real data.
 
 ## Case studies
 

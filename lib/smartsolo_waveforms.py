@@ -678,6 +678,10 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
         BD3C-5 nodes get their own poles/zeros with either option;
       * ``"nominal"`` - DT-SOLO 5 Hz data-sheet values (5 Hz, h 0.70,
         80 V/m/s) + 3355.4428 counts/mV × gain;
+      * ``"nrl"`` - the EarthScope/IRIS Nominal Response Library response
+        with its decimation FIR stages for the sample rate and filter phase;
+      * any other folder name in ``instrument_responses/`` (see
+        ``smartsolo_response``); ``"auspass"`` works without the folder;
       * ``"test"`` - the mean f0 / damping / sensitivity of the boot-time
         geophone test of that deployment (``test_*_mean`` columns), falling
         back to nominal when the test failed or was noisy.
@@ -735,17 +739,18 @@ def build_inventory(selection, mapping=None, components=("Z", "N", "E"), samplin
             g = 0.0 if removed else _deployment_gain(dep)
             if pd.isna(g):
                 g = 0.0
-        if response in ("auspass", "dtcc"):
-            resp = sn.staged_response(dep.get("device_type") or "IGU-16HR 3C 5Hz", float(sr), g,
-                                      model=response)
-        elif response is not None:
+        if response == "test":
             pars = dict(f0=sn.NOMINAL_5HZ["f0"], damping=sn.NOMINAL_5HZ["damping"],
                         sensitivity=sn.NOMINAL_5HZ["sensitivity"])
-            if response == "test" and bool(dep.get("geophone_ok", False)) \
-                    and not bool(dep.get("geophone_test_noisy", True)):
+            if bool(dep.get("geophone_ok", False)) and not bool(dep.get("geophone_test_noisy", True)):
                 pars = dict(f0=dep["test_resonate_freq_hz_mean"], damping=dep["test_damping_mean"],
                             sensitivity=dep["test_sensitivity_mean"])
             resp = sn.geophone_response(pars["f0"], pars["damping"], pars["sensitivity"], g)
+        elif response is not None:
+            import smartsolo_response as _sr          # instrument_responses/<model>/ (auspass embedded)
+            phase = str(dep.get("anti_alias_filter_type", "linear") or "linear")
+            resp = _sr.get_response(response, dep.get("device_type") or "IGU-16HR 3C 5Hz", g, float(sr),
+                                    filter_phase="minimum" if phase.lower().startswith("min") else "linear")
         orient = _ORIENT if _resolve_flip(dep, polarity_inverted) else _ORIENT_RAW
         for n, s, l, c, rate in chans:
             az, dip = orient.get(c[-1], (0.0, 0.0))

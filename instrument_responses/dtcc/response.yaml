@@ -1,0 +1,46 @@
+# Instrument response model for node_toolbox (smartsolo_response.get_response)
+title: DTCC data-sheet constants (as in the harvest script)
+use: For comparison with archives made by the harvest script.
+source:
+- name: DTCC SmartSolo IGU-16HR 3C data sheet
+  url: https://smartsolo.com/sc/IGU-16HR%203C.pdf
+devices:
+  IGU-16HR3C:
+    zeros:
+    - - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+    poles:
+    - - -22.211059
+      - 22.217768
+    - - -22.211059
+      - -22.217768
+    sensor_v_per_m_s: 76.6
+    adc_counts_per_v: 3355500.0
+notes:
+- 0.005 % more sensitive than auspass; same poles and zeros.
+- '76.6 V/(m/s) is the DT-SOLO open-circuit 80 V/(m/s) loaded by the 43 kOhm shunt: 80 x 43000 / (43000
+  + 1850) = 76.7.'
+files:
+- file: IGU-16HR3C_00dB.xml
+  device: IGU-16HR3C
+  gain_db: 0
+- file: IGU-16HR3C_06dB.xml
+  device: IGU-16HR3C
+  gain_db: 6
+- file: IGU-16HR3C_12dB.xml
+  device: IGU-16HR3C
+  gain_db: 12
+- file: IGU-16HR3C_18dB.xml
+  device: IGU-16HR3C
+  gain_db: 18
+- file: IGU-16HR3C_24dB.xml
+  device: IGU-16HR3C
+  gain_db: 24
+- file: IGU-16HR3C_30dB.xml
+  device: IGU-16HR3C
+  gain_db: 30
+- file: IGU-16HR3C_36dB.xml
+  device: IGU-16HR3C
+  gain_db: 36

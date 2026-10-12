@@ -1,0 +1,80 @@
+# Instrument response model for node_toolbox (smartsolo_response.get_response)
+title: AusPass / ANSIR published SmartSolo response (default)
+use: Default. Published, huddle-tested response for counts with the polarity inverted (x -1).
+source:
+- name: AusPass - SmartSolo Node Seismometers
+  url: https://auspass.edu.au/xwiki/bin/view/Instrumentation/SmartSolo%20Nodes/
+devices:
+  IGU-16HR3C:
+    zeros:
+    - - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+    poles:
+    - - -22.211059
+      - 22.217768
+    - - -22.211059
+      - -22.217768
+    f0_hz: 5.0
+    damping: 0.707
+    overall_counts_per_m_s_0dB: 257019225.55108312
+    stages:
+    - sensor 76.6 V/(m/s) (poles/zeros, normalised at 15 Hz)
+    - preamp 10^(gain/20) V/V (gain contained in the data)
+    - ADC 3355342.4 counts/V (= AusPass overall / 76.6)
+  BD3C-5:
+    zeros:
+    - - 14164.0
+      - 0.0
+    - - -7162.0
+      - 0.0
+    - - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+    poles:
+    - - -1720.4
+      - 0.0
+    - - -1.2
+      - 0.9
+    - - -1.2
+      - -0.9
+    norm_factor: -1.6972550464130542e-05
+    norm_freq_hz: 10.0
+    sensor_v_per_m_s: 209.4042
+    adc_counts_per_v: 3355478.9
+notes:
+- 'AusPass: the same response for all channels and units (no bespoke calibration), apparently insensitive
+  to sample rate; IGU-16 1C nodes appear to share it.'
+- The anti-alias FIR filters are not included (see the nrl model for them).
+- Embedded in lib/smartsolo_node.py as well, used when this folder is missing.
+- The files are written at 1000 sps; get_response puts the requested rate into the ADC stage.
+files:
+- file: IGU-16HR3C_00dB.xml
+  device: IGU-16HR3C
+  gain_db: 0
+- file: IGU-16HR3C_06dB.xml
+  device: IGU-16HR3C
+  gain_db: 6
+- file: IGU-16HR3C_12dB.xml
+  device: IGU-16HR3C
+  gain_db: 12
+- file: IGU-16HR3C_18dB.xml
+  device: IGU-16HR3C
+  gain_db: 18
+- file: IGU-16HR3C_24dB.xml
+  device: IGU-16HR3C
+  gain_db: 24
+- file: IGU-16HR3C_30dB.xml
+  device: IGU-16HR3C
+  gain_db: 30
+- file: IGU-16HR3C_36dB.xml
+  device: IGU-16HR3C
+  gain_db: 36
+- file: BD3C-5_00dB.xml
+  device: BD3C-5
+  gain_db: 0
+- file: BD3C-5_06dB.xml
+  device: BD3C-5
+  gain_db: 6

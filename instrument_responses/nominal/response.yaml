@@ -1,0 +1,48 @@
+# Instrument response model for node_toolbox (smartsolo_response.get_response)
+title: DT-SOLO 5 Hz data-sheet geophone
+use: A textbook geophone from the data sheet; useful to see how much the details matter.
+source:
+- name: SmartSolo IGU-16HR 3C data sheet
+  url: https://smartsolo.com/sc/IGU-16HR%203C.pdf
+devices:
+  IGU-16HR3C:
+    f0_hz: 5.0
+    damping: 0.7
+    sensor_v_per_m_s: 80.0
+    adc_counts_per_v: 3355442.8
+    zeros:
+    - - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+    poles:
+    - - -21.991148575128552
+      - 22.43545908724752
+    - - -21.991148575128552
+      - -22.43545908724752
+notes:
+- Mixes the open-circuit sensitivity (80 V/(m/s)) with the shunted damping (0.70), as the data sheet lists
+  them; the shunted sensitivity is 76.6-76.7 V/(m/s), so amplitudes are ~4 % high.
+- ADC 3355.4428 counts/mV = 2^23 counts / 2.5 V (24 bits over the +-2.5 V full scale).
+files:
+- file: IGU-16HR3C_00dB.xml
+  device: IGU-16HR3C
+  gain_db: 0
+- file: IGU-16HR3C_06dB.xml
+  device: IGU-16HR3C
+  gain_db: 6
+- file: IGU-16HR3C_12dB.xml
+  device: IGU-16HR3C
+  gain_db: 12
+- file: IGU-16HR3C_18dB.xml
+  device: IGU-16HR3C
+  gain_db: 18
+- file: IGU-16HR3C_24dB.xml
+  device: IGU-16HR3C
+  gain_db: 24
+- file: IGU-16HR3C_30dB.xml
+  device: IGU-16HR3C
+  gain_db: 30
+- file: IGU-16HR3C_36dB.xml
+  device: IGU-16HR3C
+  gain_db: 36

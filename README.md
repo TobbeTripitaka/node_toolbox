@@ -30,7 +30,8 @@ The [user guide](docs/USER_GUIDE.md) explains every module in detail.
 | `smartsolo_dld` | Raw `.DLD` files read directly ([format](docs/DLD_FORMAT.md), [how it was made](docs/CLEAN_ROOM.md)) |
 | `smartsolo_waveforms` | Index MiniSEED / SEG-Y / DLD files, cut windows with SEED codes, write MiniSEED + StationXML |
 | `smartsolo_batch` | Whole harvests → SDS archive + harvest database, in parallel |
-| `smartsolo_node` | Script, `device.ini`, pulse test, boot-by-boot sensor QC, instrument response |
+| `smartsolo_node` | Script, `device.ini`, pulse test, boot-by-boot sensor QC |
+| `smartsolo_response` | Instrument responses from `instrument_responses/` (StationXML): AusPass (default), DTCC, NRL, nominal; `inspect_instrument_response` |
 | `smartsolo_orientation` | eCompass and tilt: circular statistics, rotation, IGRF declination, azimuths |
 | `smartsolo_config` | All processing settings in one YAML/JSON file |
 
@@ -68,8 +69,8 @@ A whole harvest to an SDS archive: `python lib/smartsolo_batch.py settings.yaml 
 ## Notebooks
 
 The functionality is best shown through the notebooks in
-[`notebooks/`](notebooks/): five **tutorials**, in the order of a typical
-workflow, and a **case study**. They use only the data in this repository and
+[`notebooks/`](notebooks/): six **tutorials**, in the order of a typical
+workflow, and **case studies**. They use only the data in this repository and
 are stored with their outputs, so they can be read on GitHub without running
 them. To run them, start Jupyter in their folder after `git lfs pull` (the DLD,
 batch and break-test notebooks read the raw DLD files).
@@ -83,6 +84,7 @@ batch and break-test notebooks read the raw DLD files).
 | [3. Raw DLD files](notebooks/tutorials/dld_demo.ipynb) | The DLD header (serial, firmware, start/end, position when the file was closed); the per-block time tags (GPS week and time of week, text time, position, time since GPS sync); why the text time is 1 s off and jumps 2 s while the GPS time of week does not, shown with the excerpts in `data/timing_example/`; reading samples and their continuity across tags; deployments from DLD positions; export to MiniSEED, SEG-Y and StationXML; `convert_dld` for a whole drive | break test, timing excerpts |
 | [4. Batch conversion](notebooks/tutorials/batch_convert.ipynb) | The settings file (YAML/JSON) and a template of all settings; AusPass vs DTCC response constants and gain handling; a dry run; converting six nodes in parallel to an SDS archive; the harvest database (runs, source files, day files); reruns that skip converted files and redo files converted with other timing settings without duplicating samples; reading the archive with an ObsPy SDS client and removing the response; GPS sync diagnostics; window files (SEG-Y) instead of SDS; the command line | break test |
 | [5. Node QC and orientation](notebooks/tutorials/node_qc_demo.ipynb) | What a node folder contains (`device.ini`, acquisition scripts, `PULSE_*.WAV`); test limits from the script; the pulse test read at its true 1000 sps, damped-oscillator fits of natural frequency and damping, and the noise floor in µV; polarity and channel naming (AusPass/ANSIR); boot-by-boot geophone QC, the effect of temperature on coil resistance, and noisy tests; eCompass and tilt with circular statistics, slow rotation and IGRF declination; azimuths in StationXML; instrument response options | Antarctic nodes (`data/nodes/`) |
+| [6. Instrument responses](notebooks/tutorials/instrument_responses.ipynb) | The DT-SOLO geophone and its shunt; the response models in `instrument_responses/` (AusPass default, DTCC, NRL with FIR stages, nominal, and a joke) compared with `inspect_instrument_response`; preamp gain in dB or powers of two; linear- and minimum-phase anti-alias filters and their delay; temperature; the models applied to break-test data; adding a model | break test, `instrument_responses/` |
 
 ### Case studies
 
@@ -98,6 +100,7 @@ lib/                 the modules above
 notebooks/           tutorials/ and case_studies/ (see above)
 docs/                SMARTSOLO_BASICS, USER_GUIDE, DLD_FORMAT, FINDINGS, CLEAN_ROOM
 examples/            example settings file for batch conversion
+instrument_responses/ suggested responses as StationXML + response.yaml (auspass default, dtcc, nrl, nominal, metal)
 data/break_test/     6 nodes, raw DLD + logs + pulse tests (Git LFS), a Land Cruiser braking
 data/nodes/          logs (and one node folder) from two nodes in Dronning Maud Land
 data/timing_example/ two 3-min DLD excerpts showing the 2-s label jump (Git LFS)
