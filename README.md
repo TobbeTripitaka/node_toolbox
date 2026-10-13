@@ -100,7 +100,7 @@ lib/                 the modules above
 notebooks/           tutorials/ and case_studies/ (see above)
 docs/                SMARTSOLO_BASICS, USER_GUIDE, DLD_FORMAT, FINDINGS, CLEAN_ROOM
 examples/            example settings file for batch conversion
-instrument_responses/ suggested responses as StationXML + response.yaml (auspass default, dtcc, nrl, nominal, metal)
+instrument_responses/ suggested responses as StationXML + response.yaml (auspass default, dtcc, nrl, nominal)
 data/break_test/     6 nodes, raw DLD + logs + pulse tests (Git LFS), a Land Cruiser braking
 data/nodes/          logs (and one node folder) from two nodes in Dronning Maud Land
 data/timing_example/ two 3-min DLD excerpts showing the 2-s label jump (Git LFS)

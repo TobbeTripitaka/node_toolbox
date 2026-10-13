@@ -12,7 +12,6 @@ where it matters, sample rate and anti-alias filter phase:
     nominal/   DT-SOLO 5 Hz data-sheet geophone (5 Hz, h 0.70, 80 V/(m/s))
     nrl/       EarthScope/IRIS Nominal Response Library, with the FIR decimation
                stages (linear or minimum phase) for each sample rate
-    metal/     a joke: a U-shaped "rock EQ" and a preamp that goes to 11
 
 ``get_response(model, device_type, gain_db, sampling_rate, filter_phase)``
 returns an ObsPy ``Response``. When a file for the exact gain is missing,

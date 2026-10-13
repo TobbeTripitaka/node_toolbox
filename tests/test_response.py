@@ -20,7 +20,7 @@ def h(r):
 
 def test_models_listed():
     t = sr.list_responses()
-    assert {"auspass", "dtcc", "nominal", "nrl", "metal"} <= set(t.model)
+    assert {"auspass", "dtcc", "nominal", "nrl"} <= set(t.model)
     assert t.set_index("model").loc["auspass", "default"]
 
 
@@ -45,9 +45,9 @@ def test_fallback_without_folder(monkeypatch, tmp_path):
 
 
 def test_gain_rescaled_and_nrl_choice():
-    m = sr.get_response("metal", gain_db=11)
-    m0 = sr.get_response("metal", gain_db=-1)                       # rescaled from the 11 dB file
-    assert np.allclose(np.abs(h(m)) / np.abs(h(m0)), 10 ** (12 / 20))
+    m = sr.get_response("dtcc", gain_db=0)
+    m0 = sr.get_response("dtcc", gain_db=-1)                        # no -1 dB file: rescaled from the 0 dB file
+    assert np.allclose(np.abs(h(m)) / np.abs(h(m0)), 10 ** (1 / 20))
     lp = sr.get_response("nrl", gain_db=24, sampling_rate=250, filter_phase="linear")
     mp = sr.get_response("nrl", gain_db=24, sampling_rate=250, filter_phase="minimum")
     assert lp.instrument_sensitivity.value == pytest.approx(4.11409e9, rel=1e-4)

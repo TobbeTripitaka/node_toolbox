@@ -10,7 +10,6 @@ Suggested instrument responses for SmartSolo nodes, one folder per model.
 |---|---|---|---|---|
 | `auspass` | AusPass / ANSIR published SmartSolo response (default) | BD3C-5, IGU-16HR3C | 9 | Default. Published, huddle-tested response for counts with the polarity inverted (x -1). |
 | `dtcc` | DTCC data-sheet constants (as in the harvest script) | IGU-16HR3C | 7 | For comparison with archives made by the harvest script. |
-| `metal` | Metal: a U-shaped rock EQ, and the preamp goes to 11 | IGU-16HR3C | 1 | NOT FOR SCIENCE. A test that the machinery handles an arbitrary response; also a reminder to check which response a data set was corrected with. |
 | `nominal` | DT-SOLO 5 Hz data-sheet geophone | IGU-16HR3C | 7 | A textbook geophone from the data sheet; useful to see how much the details matter. |
 | `nrl` | EarthScope (IRIS) Nominal Response Library: DT-SOLO + SmartSolo datalogger | BD3C-5, IGU-16HR3C | 100 | The manufacturer-supplied nominal response with the full digital filter chain: use it to see the anti-alias FIR filters, their delay and the minimum-phase option. |
 

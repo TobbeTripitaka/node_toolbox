@@ -6,7 +6,7 @@ every response model.
     python scripts/make_instrument_responses.py            # all models
     python scripts/make_instrument_responses.py --no-nrl   # without downloading the NRL files
 
-auspass, dtcc, nominal and metal are built from the constants in
+auspass, dtcc and nominal are built from the constants in
 lib/smartsolo_node.py; nrl is downloaded from the EarthScope (IRIS) Nominal
 Response Library web service.
 """
@@ -155,38 +155,6 @@ def make_nominal():
         files=files))
 
 
-def make_metal():
-    """U-shaped 'smile' EQ (+12 dB lows and highs, scooped mids) and a preamp at 11 dB."""
-    from obspy.core.inventory.response import (InstrumentSensitivity, PolesZerosResponseStage, Response)
-    (OUT / "metal").mkdir(parents=True, exist_ok=True)
-    base = sn.staged_response("IGU-16HR 3C 5Hz", 1000.0, 11.0, model="auspass")
-    fn = 15.0
-    # low shelf: (s + 2pi 80) / (s + 2pi 20) -> x4 below 20 Hz; high shelf: (s + 2pi 100) / (s + 2pi 400) x4 above 400 Hz
-    z = [complex(-2 * np.pi * 80), complex(-2 * np.pi * 100)]
-    p = [complex(-2 * np.pi * 20), complex(-2 * np.pi * 400)]
-    nf = 1.0 / sn._shape_at(fn, z, p)
-    eq = PolesZerosResponseStage(2, 1.0, fn, "V", "V", pz_transfer_function_type="LAPLACE (RADIANS/SECOND)",
-                                 normalization_frequency=fn, normalization_factor=nf, zeros=z, poles=p,
-                                 description="the smile: bass and treble up, mids scooped")
-    st = [base.response_stages[0], eq] + base.response_stages[1:]
-    for i, s in enumerate(st, 1):
-        s.stage_sequence_number = i
-    r = Response(instrument_sensitivity=InstrumentSensitivity(1.0, fn, "M/S", "COUNTS"), response_stages=st)
-    r.recalculate_overall_sensitivity(fn)
-    inventory(r, 1000.0, "IGU-16HR3C", "metal", 11).write(str(OUT / "metal" / "IGU-16HR3C_11dB.xml"),
-                                                          format="STATIONXML")
-    write_yaml("metal", dict(
-        title="Metal: a U-shaped rock EQ, and the preamp goes to 11",
-        use="NOT FOR SCIENCE. A test that the machinery handles an arbitrary response; also a reminder to check "
-            "which response a data set was corrected with.",
-        source=[dict(name="This Is Spinal Tap (1984)", url="https://en.wikipedia.org/wiki/Up_to_eleven")],
-        devices={"IGU-16HR3C": dict(eq_zeros_hz=[80, 100], eq_poles_hz=[20, 400],
-                                     eq="x4 (+12 dB) below 20 Hz and above 400 Hz relative to the scooped mids",
-                                     preamp_gain_db=11)},
-        notes=["11 dB is not a SmartSolo gain setting (0-36 dB in 6 dB steps). Other gains are made by rescaling."],
-        files=[dict(file="IGU-16HR3C_11dB.xml", device="IGU-16HR3C", gain_db=11)]))
-
-
 def make_nrl(sleep=0.2):
     from obspy import read_inventory
     (OUT / "nrl").mkdir(parents=True, exist_ok=True)
@@ -272,7 +240,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-nrl", action="store_true")
     a = ap.parse_args()
-    make_auspass(); make_dtcc(); make_nominal(); make_metal()
+    make_auspass(); make_dtcc(); make_nominal()
     if not a.no_nrl:
         make_nrl()
     write_readme()

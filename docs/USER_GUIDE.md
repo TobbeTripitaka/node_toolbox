@@ -441,7 +441,6 @@ inv = wf.build_inventory(sel, mapping="data/station_mapping.csv", response="ausp
 | `"dtcc"` | same stages with the DTCC data-sheet constants used in the harvest script: 76.6 V/(m/s) × 3 355 500 counts/V (0.005 % more sensitive than AusPass); for comparison with archives made by that script |
 | `"nrl"` | EarthScope/IRIS Nominal Response Library: DT-SOLO (76.6 V/(m/s)) + SmartSolo IGU-16HR3C datalogger with its four decimating FIR stages, one file per gain, sample rate (50–1000 sps) and filter phase (linear / minimum) |
 | `"nominal"` | DT-SOLO data sheet: 5 Hz, h 0.70, 80 V/(m/s) × 3355.4428 counts/mV × gain |
-| `"metal"` | a joke: a U-shaped "rock EQ" and a preamp at 11 dB – shows how a wrong response looks |
 | `"test"` | each deployment's own boot-time geophone test (if it passed and wasn't noisy), else nominal (computed, no file) |
 | any folder name | your own model in `instrument_responses/<name>/` |
 
