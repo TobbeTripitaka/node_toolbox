@@ -1,12 +1,18 @@
 # Break test data
 
-**The seismic signal of a Toyota Land Cruiser HJ60 that brakes; with a
-laughing 1 year old baby in the back seat.** Roughly ten braking manoeuvres; exact
-times were not noted.
+Recordings of a Toyota Land Cruiser HJ60 braking repeatedly beside a road,
+with a passenger in the back seat. About ten braking manoeuvres; exact times
+were not noted.
+
+Data collection: These recordings were made outside working hours with
+borrowed equipment, as a private test that was not part of any employment or
+institutional research. No traffic rules or regulations were broken, and care
+was taken throughout to carry out the tests safely. The project label in the
+node files has been anonymised (same length, no other change).
 
 Six SmartSolo IGU-16HR 3C 5 Hz nodes along the road beside the sports oval
-in Sandy Bay, Hobart, on **31 March 2023, 01:28–02:00 UTC** (12:28–13:00
-AEDT). Project `UTASTesting`, firmware V1.0.5.6kp, 500 sps, 0 dB gain.
+in Sandy Bay, Hobart, on 31 March 2023, 01:28–02:00 UTC (12:28–13:00
+AEDT). Project `RoadTesting`, firmware V1.0.5.6kp, 500 sps, 0 dB gain.
 Folders as harvested by SoloLite (`SERIAL/YYYYMMDDhhmmss/`).
 
 | serial | recording (UTC) | position |
@@ -23,7 +29,7 @@ Each folder: `DigiSolo.LOG`, `sct_par.xml`, `SCT_INT.XML`, `DigiSolo.TXT`,
 The logs also contain a later power-up of the nodes; its data files are
 not included.
 
-The `.DLD` files are stored with **Git LFS** (~45 MB). After cloning:
+The `.DLD` files are stored with Git LFS (~45 MB). After cloning:
 
 ```bash
 git lfs install

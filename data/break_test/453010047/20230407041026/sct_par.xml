@@ -1,8 +1,8 @@
 
 <script_Information>
-    <prospect>UTAS</prospect>
+    <prospect>Road</prospect>
     <script_file_name>script</script_file_name>
-    <project_name>UTASTesting</project_name>
+    <project_name>RoadTesting</project_name>
     <device_type>IGU-16HR 3C 5Hz</device_type>
     <ChNumber>3</ChNumber>
     <DeviceRunMode>0</DeviceRunMode>
