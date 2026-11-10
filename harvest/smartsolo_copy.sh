@@ -17,17 +17,23 @@
 #   2. out_path=... in ./smartsolo_copy.conf (or file given with --config)
 #   otherwise the script stops with an error.
 #
+# See harvest/README.md for documentation and examples.
+#
 # Config file format (key=value, # for comments), all keys optional:
 #   out_path=/Users/me/data/raw
 #   csv_path=/Users/me/data/raw/qc_log.csv   # QC CSV is only written if set
 #   jobs=4
 #   volumes_root=/Volumes
+#   eject=yes                                # eject drives whose QC is OK
 # =============================================================================
 
 set -o pipefail
 
-VERSION="1.0"
-SCRIPT_PATH="$0"
+VERSION="1.2"
+# absolute path to this script + the bash running it (workers are started the same way,
+# so the script works with "bash ./smartsolo_copy.sh" even without the executable bit)
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
+BASH_BIN="${BASH:-bash}"
 CONFIG_DEFAULT="./smartsolo_copy.conf"
 
 
@@ -67,6 +73,21 @@ count_by_type() {
 
 is_drive_id() { case "$1" in [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]) return 0 ;; esac; return 1; }
 
+eject_drive() {  # $1 = mount point
+    local mp="$1" dev
+    if [ "$(uname -s)" = "Darwin" ]; then
+        diskutil eject "$mp" >/dev/null 2>&1
+        return $?
+    fi
+    dev=$(df -P "$mp" 2>/dev/null | awk 'NR==2{print $1}')
+    if command -v udisksctl >/dev/null 2>&1 && [ -b "$dev" ]; then
+        udisksctl unmount -b "$dev" >/dev/null 2>&1 || return 1
+        udisksctl power-off -b "$dev" >/dev/null 2>&1 || true   # whole-disk power-off if allowed
+        return 0
+    fi
+    umount "$mp" >/dev/null 2>&1
+}
+
 usage() {
 cat <<EOF
 smartsolo_copy.sh v$VERSION - copy all 9-digit-named USB drives to out_path
@@ -79,6 +100,8 @@ Usage: $(basename "$SCRIPT_PATH") [options]
   -j, --jobs N            Drives copied in parallel (default 4; 1 = one at a time)
   -d, --drive ID          Copy only this drive (can be repeated)
   -n, --dry-run           Only list the drives found and where they would go
+  -e, --eject             Eject each drive after a successful copy (QC status OK).
+                          Drives with WARN/FAIL/SKIP stay mounted.
       --volumes-root DIR  Where drives are mounted (default: /Volumes on macOS,
                           /media/\$USER and /run/media/\$USER on Linux)
   -h, --help              Show this help
@@ -158,7 +181,7 @@ fi
 
 # ============================================================================= main
 OUT_PATH=""; CSV_PATH=""; JOBS=""; VOLUMES_ROOT=""; CONFIG="$CONFIG_DEFAULT"
-DRY_RUN=0; ONLY_DRIVES=""; CONFIG_GIVEN=0
+DRY_RUN=0; ONLY_DRIVES=""; CONFIG_GIVEN=0; EJECT=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -168,6 +191,7 @@ while [ $# -gt 0 ]; do
         -j|--jobs)         [ -n "${2:-}" ] || die "$1 needs a number"; JOBS="$2"; shift 2 ;;
         -d|--drive)        is_drive_id "${2:-}" || die "--drive needs a 9-digit id"; ONLY_DRIVES="$ONLY_DRIVES $2"; shift 2 ;;
         -n|--dry-run)      DRY_RUN=1; shift ;;
+        -e|--eject)        EJECT=1; shift ;;
         --volumes-root)    [ -n "${2:-}" ] || die "$1 needs a dir"; VOLUMES_ROOT="$2"; shift 2 ;;
         -h|--help)         usage; exit 0 ;;
         *)                 usage; die "unknown option: $1" ;;
@@ -187,6 +211,9 @@ if [ -f "$CONFIG" ]; then
             csv_path)     [ -z "$CSV_PATH" ]     && CSV_PATH="$val" ;;
             jobs)         [ -z "$JOBS" ]         && JOBS="$val" ;;
             volumes_root) [ -z "$VOLUMES_ROOT" ] && VOLUMES_ROOT="$val" ;;
+            eject)        if [ -z "$EJECT" ]; then
+                              case "$val" in yes|YES|true|TRUE|1|on) EJECT=1 ;; *) EJECT=0 ;; esac
+                          fi ;;
             *) warn "unknown key in $CONFIG: $key" ;;
         esac
     done < "$CONFIG"
@@ -198,6 +225,7 @@ fi
 OUT_PATH=$(expand_tilde "$OUT_PATH")
 [ -n "$CSV_PATH" ] && CSV_PATH=$(expand_tilde "$CSV_PATH")
 JOBS="${JOBS:-4}"
+EJECT="${EJECT:-0}"
 case "$JOBS" in ''|*[!0-9]*|0) die "--jobs must be a positive integer" ;; esac
 
 # ---- where to look for drives
@@ -231,6 +259,7 @@ echo "smartsolo_copy.sh v$VERSION   $(date '+%Y-%m-%d %H:%M:%S')"
 echo "Looking in : $ROOTS"
 echo "Output to  : $OUT_PATH"
 [ -n "$CSV_PATH" ] && echo "QC CSV     : $CSV_PATH"
+[ "$EJECT" -eq 1 ] && echo "Eject      : yes (only drives with QC status OK)"
 
 if [ ${#DRIVE_IDS[@]} -eq 0 ]; then
     echo "No drives with a 9-digit name found."
@@ -302,14 +331,14 @@ echo
 echo "Copying ${#TODO[@]} drive(s) with $COPY_TOOL, $JOBS at a time ..."
 export RESULT_DIR COPY_TOOL
 T0=$SECONDS
-printf '%s\0' "${TODO[@]}" | xargs -0 -n 1 -P "$JOBS" "$SCRIPT_PATH" --_worker
+printf '%s\0' "${TODO[@]}" | xargs -0 -n 1 -P "$JOBS" "$BASH_BIN" "$SCRIPT_PATH" --_worker
 T_TOTAL=$((SECONDS - T0))
 
 # ---- QC summary
 echo
 echo "================================ QC SUMMARY ================================"
 printf '%-11s %-6s %9s %9s %12s %12s  %s\n' "DRIVE" "STATUS" "SRC_FILES" "DST_FILES" "SRC_SIZE" "DST_SIZE" "FILE TYPES"
-n_ok=0; n_warn=0; n_fail=0; tot_files=0; tot_bytes=0
+OK_SRCS=(); n_ok=0; n_warn=0; n_fail=0; tot_files=0; tot_bytes=0
 if [ -n "$CSV_PATH" ]; then
     mkdir -p "$(dirname "$CSV_PATH")"
     [ -s "$CSV_PATH" ] || echo "run_time,drive_id,source,destination,status,note,src_files,dst_files,src_bytes,dst_bytes,duration_s,method,file_types" > "$CSV_PATH"
@@ -323,6 +352,7 @@ for id in "${TODO[@]}"; do
     printf '%-11s %-6s %9s %9s %12s %12s  %s\n' "$r_id" "$r_status" "$s_n" "$d_n" "$(human "$s_b")" "$(human "$d_b")" "${types:--}"
     [ -n "$r_note" ] && echo "            -> $r_note"
     [ "$r_status" = "FAIL" ] && [ -s "$RESULT_DIR/$id.log" ] && sed 's/^/            | /' "$RESULT_DIR/$id.log" | tail -n 5
+    [ "$r_status" = "OK" ] && OK_SRCS+=("$r_src")
     case "$r_status" in OK) n_ok=$((n_ok+1)) ;; WARN) n_warn=$((n_warn+1)) ;; *) n_fail=$((n_fail+1)) ;; esac
     tot_files=$((tot_files + d_n)); tot_bytes=$(awk -v a="$tot_bytes" -v b="$d_b" 'BEGIN{printf "%.0f", a+b}')
     if [ -n "$CSV_PATH" ]; then
@@ -338,6 +368,27 @@ echo "OK: $n_ok   WARN: $n_warn   FAIL: $n_fail   SKIPPED: ${#SKIPPED[@]}"
 echo "Copied $tot_files files, $(human "$tot_bytes") in ${T_TOTAL}s"
 [ -n "$CSV_PATH" ] && echo "QC rows appended to $CSV_PATH"
 
+# ---- eject drives that copied OK
+n_eject_fail=0
+if [ "$EJECT" -eq 1 ]; then
+    echo
+    if [ ${#OK_SRCS[@]} -eq 0 ]; then
+        echo "Eject: no drive with status OK - nothing ejected."
+    else
+        sync
+        for src in "${OK_SRCS[@]}"; do
+            if eject_drive "$src"; then
+                echo "Ejected     $(basename "$src")"
+            else
+                echo "EJECT FAILED $(basename "$src")  (still mounted - eject it manually)"
+                n_eject_fail=$((n_eject_fail+1))
+            fi
+        done
+    fi
+    n_left=$(( ${#DRIVE_IDS[@]} - ${#OK_SRCS[@]} ))
+    [ $n_left -gt 0 ] && echo "$n_left drive(s) not OK - left mounted for checking."
+fi
+
 [ $n_fail -gt 0 ] && exit 2
-[ $n_warn -gt 0 ] || [ ${#SKIPPED[@]} -gt 0 ] && exit 1
+[ $n_warn -gt 0 ] || [ ${#SKIPPED[@]} -gt 0 ] || [ $n_eject_fail -gt 0 ] && exit 1
 exit 0

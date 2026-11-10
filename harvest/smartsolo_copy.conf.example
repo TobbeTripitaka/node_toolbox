@@ -1,0 +1,22 @@
+# smartsolo_copy.conf - settings for smartsolo_copy.sh
+#
+# Copy this file to smartsolo_copy.conf in the folder you run the script from:
+#   cp smartsolo_copy.conf.example smartsolo_copy.conf
+# Options given on the command line always win over this file.
+# Format: key=value, one per line. Everything after # is a comment.
+
+# Where the copies go (required unless you use --out). One subfolder per drive.
+out_path=/Volumes/LaCie/MINIS/smart_solo_backup
+
+# Append one QC row per drive to this CSV. Remove or comment out for no CSV.
+csv_path=/Volumes/LaCie/MINIS/smart_solo_backup/qc_log.csv
+
+# Number of drives copied at the same time (1 = one after another).
+jobs=4
+
+# Eject each drive after a successful copy (QC status OK): yes / no
+eject=no
+
+# Where the drives are mounted. Leave out to use the default:
+# /Volumes on macOS, /media/$USER and /run/media/$USER on Linux.
+#volumes_root=/Volumes

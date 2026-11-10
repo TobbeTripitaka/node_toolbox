@@ -102,6 +102,7 @@ instrument_responses/ suggested responses as StationXML + response.yaml (auspass
 data/break_test/     6 nodes, raw DLD + logs + pulse tests (Git LFS), a Land Cruiser braking
 data/nodes/          logs (and one node folder) from two nodes in Dronning Maud Land
 data/timing_example/ two 3-min DLD excerpts showing the 2-s label jump (Git LFS)
+harvest/             smartsolo_copy.sh: copy nodes over USB to a backup folder, with QC (bash)
 scripts/             synthetic MiniSEED/SEG-Y test data
 tests/               pytest tests and fixtures
 paper/               figures for the software report
