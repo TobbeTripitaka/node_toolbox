@@ -1,5 +1,9 @@
 # Harvest: copying data off SmartSolo nodes
 
+---
+
+## bash script for quick download
+
 `smartsolo_copy.sh` copies all data from SmartSolo nodes connected over USB
 into one backup folder, one subfolder per node, and prints a short quality
 check (QC).
