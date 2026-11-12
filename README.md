@@ -1,11 +1,9 @@
 # node_toolbox
 Tools to work with SmartSolo node type geophones. Especially in Antarctic settings where logistical limitations constrain the deployment.
 
-Authors: Tobias Stål (UTAS)
-
 ---
 
-node_toolbox reads what SmartSolo nodes write: the state-of-health log, the raw
+`node_toolbox` reads what SmartSolo nodes write: the state-of-health log, the raw
 DLD data, the acquisition script and the boot-time sensor test. With it you can:
 
 - find where and when each node recorded;
