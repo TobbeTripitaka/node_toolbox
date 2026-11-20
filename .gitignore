@@ -5,6 +5,8 @@ __pycache__/
 .DS_Store
 *.parquet
 *.nc
+*.tmp
+
 soh_all_nodes.csv
 # synthetic waveforms (regenerate with scripts/make_synthetic_waveforms.py) and outputs
 data/seismic_traces/
