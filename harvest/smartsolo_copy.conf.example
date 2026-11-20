@@ -1,22 +1,43 @@
-# smartsolo_copy.conf - settings for smartsolo_copy.sh
+# smartsolo_copy.conf - settings for smartsolo_copy.sh v2.1
 #
 # Copy this file to smartsolo_copy.conf in the folder you run the script from:
 #   cp smartsolo_copy.conf.example smartsolo_copy.conf
-# Options given on the command line always win over this file.
+# Command-line options always win over this file.
 # Format: key=value, one per line. Everything after # is a comment.
 
-# Where the copies go (required unless you use --out). One subfolder per drive.
+# Where the copies go (required unless you use --out).
+# Layout: <out_path>/<serial>/<harvest_time>/
 out_path=/Volumes/LaCie/MINIS/smart_solo_backup
 
-# Append one QC row per drive to this CSV. Remove or comment out for no CSV.
+# Append one QC row per node to this CSV. Comment out for no CSV.
 csv_path=/Volumes/LaCie/MINIS/smart_solo_backup/qc_log.csv
 
-# Number of drives copied at the same time (1 = one after another).
+# Nodes copied at the same time (1 = one after another; try 1 if a hub drops nodes).
 jobs=4
 
-# Eject each drive after a successful copy (QC status OK): yes / no
+# Eject each node whose copy passed QC: yes / no
 eject=no
 
-# Where the drives are mounted. Leave out to use the default:
-# /Volumes on macOS, /media/$USER and /run/media/$USER on Linux.
+# Mount attached nodes that the system did not mount (read-only), retrying: yes / no
+scan=yes
+
+# Keep mounting and rescanning for at most this many seconds.
+wait=60
+
+# Number of nodes connected. If a different number is found, nothing is copied.
+# Usually better given per batch on the command line: --expect 12
+#expect=12
+
+# Start even if nodes are missing (still warns): yes / no
+allow_missing=no
+
+# Compare file contents instead of size + modification time (slower): yes / no
+checksum=no
+
+# dated  = <serial>/<harvest_time>/ with only new or changed files (default)
+# legacy = v1 behaviour, full copy to <serial>/ or <serial>_YYYYmmdd_HHMMSS/
+layout=dated
+
+# Where drives are mounted. Leave out for the default:
+# /Volumes on macOS; /media/$USER, /run/media/$USER, /media, /mnt on Linux.
 #volumes_root=/Volumes
