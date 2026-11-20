@@ -15,7 +15,8 @@ csv_path=/Volumes/LaCie/MINIS/smart_solo_backup/qc_log.csv
 # Nodes copied at the same time (1 = one after another; try 1 if a hub drops nodes).
 jobs=4
 
-# Eject each node whose copy passed QC: yes / no
+# After the QC, eject the nodes whose copy is OK (others are never ejected):
+#   auto = straight away,  ask = list them and ask first,  no = never
 eject=no
 
 # Mount attached nodes that the system did not mount (read-only), retrying: yes / no

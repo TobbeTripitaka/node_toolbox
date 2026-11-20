@@ -88,8 +88,9 @@ out_path/
     do not fit are skipped (SKIP).
   - Nodes with files that cannot be read, or with no files at all, are
     skipped too.
-- **Ejecting is off by default.** With `--eject`, only nodes whose copy passed
-  QC are ejected.
+- **Only nodes whose copy passed QC can be ejected.** A node with FAIL or
+  SKIP status is never ejected, whatever `--eject` says. See
+  [Ejecting](#ejecting).
 - **Bad settings stop the run** before anything happens: an unknown option, or
   a bad value in the config file (for example `eject=maybe`).
 - Keep the data on the nodes until the QC says OK and the backup disk has been
@@ -156,7 +157,8 @@ can mount it. What usually helps:
 | `-j, --jobs N` | Nodes copied at the same time. Default 4. |
 | `-d, --drive ID` | Copy only this node. Can be repeated. If it is missing, the run does not start. |
 | `-n, --dry-run` | Show the nodes, what is new and where it would go. Copies nothing and writes nothing to `out_path`. |
-| `-e, --eject` | Eject each node whose copy passed QC. |
+| `--eject MODE` | After the QC: `auto` ejects every node whose copy is OK; `ask` lists them and asks first; `no` never ejects (default). |
+| `-e` | Same as `--eject auto`. |
 | `--volumes-root DIR` | Where drives are mounted. Default `/Volumes` (macOS); `/media/$USER`, `/run/media/$USER`, `/media`, `/mnt` (Linux). |
 | `--expect N` | Number of nodes connected. If a different number is found, the run does not start. |
 | `--allow-missing` | Start even if nodes are missing (warns, exit code 1). |
@@ -176,7 +178,7 @@ run the script from. Command-line options override it.
 out_path=/Volumes/LaCie/MINIS/smart_solo_backup
 csv_path=/Volumes/LaCie/MINIS/smart_solo_backup/qc_log.csv
 jobs=4
-eject=no
+eject=no            # auto, ask or no
 scan=yes
 wait=60
 #expect=12          # usually better given on the command line for each batch
@@ -191,10 +193,16 @@ layout=dated
 
 ## Examples
 
-A batch of 12 nodes, ejecting the ones that copied OK:
+A batch of 12 nodes, ejecting the ones that copied OK straight away:
 
 ```bash
-./smartsolo_copy.sh --expect 12 --eject
+./smartsolo_copy.sh --expect 12 --eject auto
+```
+
+The same, but confirming before anything is ejected:
+
+```bash
+./smartsolo_copy.sh --expect 12 --eject ask
 ```
 
 Nodes that are hard to mount: wait longer, and rescan by hand after
@@ -215,6 +223,25 @@ In another script, stopping if anything went wrong:
 ```bash
 ./smartsolo_copy.sh --expect 12 || { echo "check the output (exit $?)"; exit 1; }
 ```
+
+## Ejecting
+
+Ejecting happens after the QC summary, and only for nodes whose status is
+OK. Nodes with FAIL or SKIP are always left mounted so you can check them.
+
+| Mode | What happens |
+|---|---|
+| `--eject no` | Nothing is ejected. This is the default. |
+| `--eject auto` (or `-e`) | Every OK node is ejected straight away. Unplug them once the script says `They can be unplugged`. |
+| `--eject ask` | The OK nodes are listed and you choose: `a` = eject all, `o` = one by one (y/N for each), `n` or Enter = none. |
+
+- `ask` needs a terminal. If the script runs from another script or a
+  scheduler, it warns and ejects nothing.
+- Nothing is ejected in a dry run.
+- A failed eject is reported (`EJECT FAILED`), and the script exits with
+  code 1. Eject that node by hand.
+- In the config file, `eject=auto|ask|no`. The old `eject=yes` still works and
+  means `auto`.
 
 ## Output
 

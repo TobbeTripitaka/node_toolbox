@@ -113,7 +113,12 @@ Usage: $(basename "$SCRIPT_PATH") [options]
   -j, --jobs N            Nodes copied in parallel (default 4; 1 = one at a time)
   -d, --drive ID          Copy only this node (can be repeated). A missing one stops the run.
   -n, --dry-run           Show what was found, what is new and where it would go; copy nothing
-  -e, --eject             Eject each node after its copy passed QC (status OK)
+      --eject MODE        After the QC, eject the nodes whose copy is OK:
+                            auto = eject them straight away
+                            ask  = list them and ask before ejecting (all, none, one by one)
+                            no   = never eject (default)
+                          Nodes that are not OK are never ejected.
+  -e                      Same as --eject auto
       --volumes-root DIR  Where drives are mounted (default: /Volumes on macOS,
                           /media/\$USER, /run/media/\$USER, /media, /mnt on Linux)
 
@@ -514,7 +519,11 @@ while [ $# -gt 0 ]; do
         -j|--jobs)         [ -n "${2:-}" ] || die "$1 needs a number"; JOBS="$2"; shift 2 ;;
         -d|--drive)        is_drive_id "${2:-}" || die "--drive needs a 9-digit serial"; ONLY_DRIVES="$ONLY_DRIVES $2"; shift 2 ;;
         -n|--dry-run)      DRY_RUN=1; shift ;;
-        -e|--eject)        EJECT=1; shift ;;
+        -e)                EJECT="auto"; shift ;;
+        --eject)           case "${2:-}" in
+                               auto|ask|no) EJECT="$2"; shift 2 ;;
+                               *) die "--eject needs auto, ask or no" ;;
+                           esac ;;
         --volumes-root)    [ -n "${2:-}" ] || die "$1 needs a dir"; VOLUMES_ROOT="$2"; shift 2 ;;
         --no-scan)         SCAN=0; shift ;;
         --wait)            [ -n "${2:-}" ] || die "$1 needs seconds"; WAIT="$2"; shift 2 ;;
@@ -543,7 +552,12 @@ if [ -f "$CONFIG" ]; then
             csv_path)      [ -z "$CSV_PATH" ]      && CSV_PATH="$val" ;;
             jobs)          [ -z "$JOBS" ]          && JOBS="$val" ;;
             volumes_root)  [ -z "$VOLUMES_ROOT" ]  && VOLUMES_ROOT="$val" ;;
-            eject)         [ -z "$EJECT" ]         && EJECT=$(yesno "$val") ;;
+            eject)         [ -z "$EJECT" ]         && case "$val" in
+                                                          auto|ask|no) EJECT="$val" ;;
+                                                          yes|YES|true|1) EJECT="auto" ;;   # v1/v2.0 config files
+                                                          false|0|off) EJECT="no" ;;
+                                                          *) die "eject in $CONFIG must be auto, ask or no" ;;
+                                                      esac ;;
             scan)          [ -z "$SCAN" ]          && SCAN=$(yesno "$val") ;;
             wait)          [ -z "$WAIT" ]          && WAIT="$val" ;;
             expect)        [ -z "$EXPECT" ]        && EXPECT="$val" ;;
@@ -560,9 +574,9 @@ fi
 [ -n "$OUT_PATH" ] || die "no output path. Use --out PATH or set out_path=... in $CONFIG"
 OUT_PATH=$(expand_tilde "$OUT_PATH")
 [ -n "$CSV_PATH" ] && CSV_PATH=$(expand_tilde "$CSV_PATH")
-JOBS="${JOBS:-4}"; EJECT="${EJECT:-0}"; SCAN="${SCAN:-1}"; WAIT="${WAIT:-60}"
+JOBS="${JOBS:-4}"; EJECT="${EJECT:-no}"; SCAN="${SCAN:-1}"; WAIT="${WAIT:-60}"
 ALLOW_MISSING="${ALLOW_MISSING:-0}"; CHECKSUM="${CHECKSUM:-0}"; LAYOUT="${LAYOUT:-dated}"
-for v in EJECT SCAN ALLOW_MISSING CHECKSUM; do
+for v in SCAN ALLOW_MISSING CHECKSUM; do
     [ "$(eval echo \$$v)" = "bad" ] && die "$(echo $v | tr 'A-Z' 'a-z') in $CONFIG must be yes or no"
 done
 case "$JOBS" in ''|*[!0-9]*|0) die "jobs must be a positive integer" ;; esac
@@ -570,6 +584,7 @@ case "$WAIT" in ''|*[!0-9]*) die "wait must be a number of seconds" ;; esac
 [ -z "$EXPECT" ] || case "$EXPECT" in *[!0-9]*|0) die "expect must be a positive number" ;; esac
 case "$LAYOUT" in dated|legacy) ;; *) die "layout must be dated or legacy" ;; esac
 [ "$INTERACTIVE" -eq 1 ] && [ ! -t 0 ] && { warn "--interactive needs a terminal; ignored"; INTERACTIVE=0; }
+[ "$DRY_RUN" -eq 0 ] && [ "$EJECT" = "ask" ] && [ ! -t 0 ] && { warn "--eject ask needs a terminal; nodes will not be ejected"; EJECT="no"; }
 
 # ---- where to look for drives
 if [ -n "$VOLUMES_ROOT" ]; then
@@ -618,7 +633,8 @@ echo "Compare    : $( [ "$CHECKSUM" -eq 1 ] && echo 'file contents' || echo 'siz
 [ -n "$EXPECT" ]      && echo "Expect     : $EXPECT node(s)$( [ "$ALLOW_MISSING" -eq 1 ] && echo ', start even if some are missing')"
 [ -n "$ONLY_DRIVES" ] && echo "Only       :$ONLY_DRIVES"
 [ -n "$CSV_PATH" ]    && echo "QC CSV     : $CSV_PATH"
-[ "$EJECT" -eq 1 ]    && echo "Eject      : yes (only nodes with QC status OK)"
+[ "$DRY_RUN" -eq 0 ] && [ "$EJECT" = "auto" ] && echo "Eject      : auto - nodes with QC status OK are ejected after the copy"
+[ "$DRY_RUN" -eq 0 ] && [ "$EJECT" = "ask" ]  && echo "Eject      : ask - you confirm before nodes with QC status OK are ejected"
 [ "$DRY_RUN" -eq 0 ]  && echo "Run log    : $RUN_LOG"
 n_inc=$(find "$OUT_ABS" -maxdepth 2 -type d -name "*$INCOMPLETE" 2>/dev/null | wc -l | tr -d ' ')
 [ "$n_inc" -gt 0 ] && warn "$n_inc earlier harvest folder(s) *$INCOMPLETE in $OUT_ABS (failed or interrupted; not used as reference, kept for checking)"
@@ -746,25 +762,40 @@ echo "OK: $n_ok   FAIL: $n_fail   SKIPPED: ${#SKIPPED[@]}$( [ "$GATE_OVERRIDDEN"
 echo "Copied and verified: $tot_new new files, $(human "$tot_bytes") in ${T_TOTAL}s"
 [ -n "$CSV_PATH" ] && echo "QC rows appended to $CSV_PATH"
 
-# ---- eject nodes that copied OK
-n_eject_fail=0
-if [ "$EJECT" -eq 1 ]; then
+# ---- eject nodes that copied OK (never the others)
+n_eject_fail=0; n_ejected=0
+do_eject() {  # $1 = mount point
+    if eject_drive "$1"; then
+        echo "Ejected      $(basename "$1")"; n_ejected=$((n_ejected+1))
+    else
+        echo "EJECT FAILED $(basename "$1")  (still mounted - eject it by hand)"; n_eject_fail=$((n_eject_fail+1))
+    fi
+}
+if [ "$EJECT" != "no" ]; then
     echo
     if [ ${#OK_SRCS[@]} -eq 0 ]; then
         echo "Eject: no node with status OK - nothing ejected."
     else
         sync
-        for src in "${OK_SRCS[@]}"; do
-            if eject_drive "$src"; then
-                echo "Ejected      $(basename "$src")"
-            else
-                echo "EJECT FAILED $(basename "$src")  (still mounted - eject it by hand)"
-                n_eject_fail=$((n_eject_fail+1))
-            fi
-        done
+        if [ "$EJECT" = "auto" ]; then
+            for src in "${OK_SRCS[@]}"; do do_eject "$src"; done
+        else
+            echo "Nodes with status OK (${#OK_SRCS[@]}): $(for src in "${OK_SRCS[@]}"; do printf '%s ' "$(basename "$src")"; done)"
+            printf "Eject them? a = all, o = one by one, n = none (default): "
+            read -r ans || ans=n
+            case "$ans" in
+                a|A) for src in "${OK_SRCS[@]}"; do do_eject "$src"; done ;;
+                o|O) for src in "${OK_SRCS[@]}"; do
+                         printf "  eject %s? (y/N): " "$(basename "$src")"; read -r ans || ans=n
+                         case "$ans" in y|Y|yes) do_eject "$src" ;; *) echo "Kept mounted $(basename "$src")" ;; esac
+                     done ;;
+                *)   echo "Nothing ejected." ;;
+            esac
+        fi
     fi
     n_left=$(( ${#DRIVE_IDS[@]} - ${#OK_SRCS[@]} ))
-    [ $n_left -gt 0 ] && echo "$n_left node(s) not OK - left mounted for checking."
+    [ $n_left -gt 0 ] && echo "$n_left node(s) not OK - left mounted for checking (never ejected)."
+    [ $n_ejected -gt 0 ] && echo "Ejected $n_ejected node(s). They can be unplugged."
 fi
 echo "Run log: $RUN_LOG"
 
