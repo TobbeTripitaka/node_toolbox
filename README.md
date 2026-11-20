@@ -6,6 +6,8 @@ Tools to work with SmartSolo node type geophones. Especially in Antarctic settin
 `node_toolbox` reads what SmartSolo nodes write: the state-of-health log, the raw
 DLD data, the acquisition script and the boot-time sensor test. With it you can:
 
+- copy the nodes off over USB into a dated backup, with QC (bash, no Python
+  needed; see [Harvest](#harvest-copying-nodes-over-usb));
 - find where and when each node recorded;
 - select nodes by area and time;
 - cut and convert the data to MiniSEED, SEG-Y or an SDS archive with StationXML;
@@ -62,6 +64,53 @@ A whole drive of DLD files to MiniSEED and StationXML in one call:
 `wf.convert_dld("/media/drive", out_dir="out", log_root="/media/drive")`.
 A whole harvest to an SDS archive: `python lib/smartsolo_batch.py settings.yaml /media/harvest_01`.
 
+## Harvest: copying nodes over USB
+
+[`harvest/smartsolo_copy.sh`](harvest/smartsolo_copy.sh) copies the data from
+SmartSolo nodes connected over USB into a backup folder and prints a QC
+summary. It is plain bash, runs on macOS (including the default bash 3.2) and
+Linux, and needs neither Python nor `sudo`. The rest of the toolbox reads
+its output directly.
+
+```bash
+cd harvest
+cp smartsolo_copy.conf.example smartsolo_copy.conf     # once; set out_path
+./smartsolo_copy.sh -n --expect 12                      # dry run: what is found, what is new
+./smartsolo_copy.sh    --expect 12 --eject ask          # copy, then confirm before ejecting
+```
+
+- **One dated folder per harvest:** `<out_path>/<serial>/<YYYYmmdd_HHMMSS>/`.
+  A later harvest of the same node stores only files that are new or changed,
+  so data files are not copied twice.
+  - Nothing is overwritten: a log that grew is stored again, and the old
+    version stays where it was.
+  - Every harvest folder has a `_harvest_manifest.tsv` listing every file
+    that was on the node and the folder that holds it.
+  - Folders from older versions of the script are recognised as earlier
+    harvests.
+- **Safe by design:**
+  - The nodes are only read, and nodes the script mounts are mounted read-only.
+  - Each harvest is written to `<stamp>.incomplete/` and renamed only after
+    every new file has been checked. Failed or interrupted copies stay
+    `.incomplete` and are never treated as an earlier harvest.
+  - A lock stops two runs writing to the same folder, every run is logged
+    in `_harvest_logs/`, and free space is checked before copying.
+- **Finds every node before starting:**
+  - It mounts attached nodes the system missed, retrying for those that only
+    mount after several attempts, and waits for file-system checks to finish.
+  - If the number of nodes mounted does not match `--expect N`, it warns and
+    copies nothing. Use `--interactive` to reseat nodes and rescan, or
+    `--allow-missing` to copy what was found.
+- **Ejecting:** `--eject auto` ejects straight away, `--eject ask` asks first,
+  and `--eject no` (the default) never ejects. Only nodes whose copy passed QC
+  are ever ejected.
+- **QC:** a per-node status (OK, FAIL or SKIP), an optional QC CSV, and exit
+  codes for use in other scripts.
+
+See [harvest/README.md](harvest/README.md) for the folder layout, every
+option, the config file, troubleshooting for nodes that do not mount, and
+the exit codes.
+
 ## Notebooks
 
 The functionality is best shown through the notebooks in
@@ -100,7 +149,7 @@ instrument_responses/ suggested responses as StationXML + response.yaml (auspass
 data/break_test/     6 nodes, raw DLD + logs + pulse tests (Git LFS), a Land Cruiser braking
 data/nodes/          logs (and one node folder) from two nodes in Dronning Maud Land
 data/timing_example/ two 3-min DLD excerpts showing the 2-s label jump (Git LFS)
-harvest/             smartsolo_copy.sh: copy nodes over USB to a backup folder, with QC (bash)
+harvest/             smartsolo_copy.sh (bash): copy nodes over USB into dated harvest folders, with QC; README, example config
 scripts/             synthetic MiniSEED/SEG-Y test data
 tests/               pytest tests and fixtures
 paper/               figures for the software report
